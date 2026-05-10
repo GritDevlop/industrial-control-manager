@@ -1,0 +1,3116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+  <title>工控资料聚合管理器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #1890ff;
+      --primary-hover: #40a9ff;
+      --bg-color: #f0f2f5;
+      --card-bg: #ffffff;
+      --text-primary: #262626;
+      --text-secondary: #8c8c8c;
+      --border-color: #d9d9d9;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+      --success-color: #52c41a;
+      --warning-color: #faad14;
+      --error-color: #ff4d4f;
+      --info-color: #1890ff;
+    }
+
+    body.dark-theme {
+      --bg-color: #1f1f1f;
+      --card-bg: #2d2d2d;
+      --text-primary: #e8e8e8;
+      --text-secondary: #a6a6a6;
+      --border-color: #404040;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .mode-switch {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 4px;
+    }
+
+    .mode-btn {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s;
+      font-size: 13px;
+    }
+
+    .mode-btn.active {
+      background: white;
+      color: #1890ff;
+      font-weight: 500;
+    }
+
+    .mode-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .search-box {
+      position: relative;
+      width: 320px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 36px 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      background: white;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8c8c8c;
+      pointer-events: none;
+    }
+
+    .header-btn {
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: white;
+    }
+
+    .header-btn.has-badge::after {
+      content: attr(data-badge);
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #ff4d4f;
+      color: white;
+      font-size: 10px;
+      padding: 2px 5px;
+      border-radius: 10px;
+      min-width: 16px;
+      text-align: center;
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--bg-color);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .icon-btn:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .tree-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .tree-node {
+      user-select: none;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      margin-bottom: 2px;
+    }
+
+    .tree-item:hover {
+      background: var(--bg-color);
+    }
+
+    .tree-item.active {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .tree-item-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tree-item-text {
+      flex: 1;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tree-item-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: 8px;
+    }
+
+    .tree-item.active .tree-item-count {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .tree-toggle {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s;
+      margin-right: 4px;
+    }
+
+    .tree-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .tree-children {
+      margin-left: 24px;
+    }
+
+    .tree-children.collapsed {
+      display: none;
+    }
+
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .breadcrumb-item {
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .breadcrumb-item:hover {
+      color: var(--primary-color);
+    }
+
+    .breadcrumb-item.current {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .breadcrumb-separator {
+      color: var(--text-secondary);
+    }
+
+    .products-grid {
+      flex: 1;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 8px;
+    }
+
+    .product-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .product-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .product-card.expanded {
+      border-color: var(--primary-color);
+    }
+
+    .product-card.favorite {
+      border-color: var(--warning-color);
+    }
+
+    .product-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .product-thumbnail {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .product-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-model {
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 2px 8px;
+      background: var(--bg-color);
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .favorite-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-color);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      color: var(--text-secondary);
+    }
+
+    .favorite-btn:hover {
+      background: var(--warning-color);
+      color: white;
+    }
+
+    .favorite-btn.active {
+      background: var(--warning-color);
+      color: white;
+    }
+
+    .product-dropdown {
+      margin-top: 16px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 16px;
+      display: none;
+    }
+
+    .product-dropdown.show {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .module-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .module-item {
+      background: var(--bg-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .module-header:hover {
+      background: var(--border-color);
+    }
+
+    .module-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary-color);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-right: 12px;
+    }
+
+    .module-info {
+      flex: 1;
+    }
+
+    .module-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .module-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .module-toggle {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s;
+    }
+
+    .module-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .module-content {
+      padding: 0 16px 12px;
+      display: block;
+    }
+
+    .module-content.collapsed {
+      display: none;
+    }
+
+    .content-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--card-bg);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      transition: all 0.3s;
+    }
+
+    .content-item:hover {
+      box-shadow: var(--shadow);
+    }
+
+    .content-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 16px;
+    }
+
+    .content-icon.local {
+      background: #e6f7ff;
+      color: var(--primary-color);
+    }
+
+    .content-icon.network {
+      background: #fff7e6;
+      color: var(--warning-color);
+    }
+
+    .content-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .content-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .content-path {
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .content-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--bg-color);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .action-btn.danger:hover {
+      background: var(--error-color);
+    }
+
+    .status-bar {
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      padding: 8px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success-color);
+    }
+
+    .status-dot.warning {
+      background: var(--warning-color);
+    }
+
+    .status-dot.error {
+      background: var(--error-color);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      transform: scale(0.9);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.show .modal {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-color);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .modal-close:hover {
+      background: var(--error-color);
+      color: white;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--card-bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+
+    .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--card-bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-color);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .btn-danger {
+      background: var(--error-color);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #ff7875;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .empty-hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toast {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-hover);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--success-color);
+    }
+
+    .toast.error {
+      border-left: 4px solid var(--error-color);
+    }
+
+    .toast.warning {
+      border-left: 4px solid var(--warning-color);
+    }
+
+    .toast.info {
+      border-left: 4px solid var(--info-color);
+    }
+
+    .toast-icon {
+      font-size: 20px;
+    }
+
+    .toast-content {
+      flex: 1;
+    }
+
+    .toast-title {
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .toast-message {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--text-primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .setting-section {
+      margin-bottom: 24px;
+    }
+
+    .setting-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--bg-color);
+    }
+
+    .setting-info {
+      flex: 1;
+    }
+
+    .setting-label {
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .setting-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--border-color);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle-switch.active {
+      background: var(--primary-color);
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(20px);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--border-color);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary-color);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: var(--shadow-hover);
+      padding: 8px;
+      min-width: 160px;
+      z-index: 1000;
+      display: none;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.3s;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .dropdown-item:hover {
+      background: var(--bg-color);
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 4px 0;
+    }
+
+    .update-banner {
+      background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .update-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .update-icon {
+      font-size: 24px;
+    }
+
+    .update-text h4 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .update-text p {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .update-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .context-menu {
+      position: fixed;
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: var(--shadow-hover);
+      padding: 8px;
+      min-width: 180px;
+      z-index: 2000;
+      display: none;
+    }
+
+    .context-menu.show {
+      display: block;
+    }
+
+    .context-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.3s;
+      font-size: 14px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .context-item:hover {
+      background: var(--bg-color);
+    }
+
+    .context-item.danger {
+      color: var(--error-color);
+    }
+
+    .context-item.danger:hover {
+      background: #fff2f0;
+    }
+
+    body.dark-theme .context-item.danger:hover {
+      background: rgba(255, 77, 79, 0.1);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    .drag-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(24, 144, 255, 0.1);
+      border: 3px dashed var(--primary-color);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+
+    .drag-overlay.show {
+      display: flex;
+    }
+
+    .drag-content {
+      text-align: center;
+      color: var(--primary-color);
+    }
+
+    .drag-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .drag-text {
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .favorites-panel {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 400px;
+      height: 100vh;
+      background: var(--card-bg);
+      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+      z-index: 1001;
+      transition: right 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .favorites-panel.show {
+      right: 0;
+    }
+
+    .panel-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .favorite-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: var(--bg-color);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .favorite-item:hover {
+      box-shadow: var(--shadow);
+    }
+
+    .search-highlight {
+      background: #ffe58f;
+      color: var(--text-primary);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    body.dark-theme .search-highlight {
+      background: #ad8b00;
+    }
+
+    .tooltip {
+      position: absolute;
+      background: var(--text-primary);
+      color: var(--card-bg);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      max-width: 300px;
+      z-index: 3000;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip.show {
+      opacity: 1;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--error-color);
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div class="header-left">
+        <h1 class="header-title">工控资料聚合管理器</h1>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-mode="company-first">按公司分类</button>
+          <button class="mode-btn" data-mode="category-first">按类别分类</button>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="搜索产品、资料、公司..." id="globalSearch">
+          <span class="search-icon">🔍</span>
+        </div>
+        <button class="header-btn" id="favoritesBtn">
+          ⭐ <span>收藏</span>
+          <span class="notification-badge" id="favoritesBadge" style="display:none;">0</span>
+        </button>
+        <button class="header-btn" id="updateBtn">
+          🔄 <span>检查更新</span>
+        </button>
+        <button class="header-btn" id="settingsBtn">
+          ⚙️ <span>设置</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">📂 分类目录</span>
+          <div class="sidebar-actions">
+            <button class="icon-btn" id="expandAllBtn" title="展开全部">⬇️</button>
+            <button class="icon-btn" id="collapseAllBtn" title="折叠全部">⬆️</button>
+          </div>
+        </div>
+        <div class="tree-container" id="categoryTree"></div>
+      </aside>
+
+      <section class="content-area">
+        <div class="breadcrumb" id="breadcrumb">
+          <span class="breadcrumb-item">全部产品</span>
+        </div>
+        <div class="products-grid" id="productsGrid"></div>
+      </section>
+    </main>
+
+    <footer class="status-bar">
+      <div class="status-left">
+        <div class="status-item">
+          <span class="status-dot" id="networkStatus"></span>
+          <span id="networkText">已连接</span>
+        </div>
+        <div class="status-item">
+          <span>📁 存储路径：</span>
+          <span id="storagePath">未设置</span>
+        </div>
+      </div>
+      <div class="status-right">
+        <span id="lastUpdate">最后更新：从未</span>
+        <span style="margin-left: 16px;">共 <span id="totalProducts">0</span> 个产品</span>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">⚙️ 设置</h2>
+        <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs">
+          <button class="tab active" data-tab="general">常规设置</button>
+          <button class="tab" data-tab="display">显示设置</button>
+          <button class="tab" data-tab="update">更新设置</button>
+          <button class="tab" data-tab="backup">备份管理</button>
+        </div>
+
+        <div class="tab-content active" id="tab-general">
+          <div class="setting-section">
+            <h3 class="setting-title">默认分类模式</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">启动时默认显示</div>
+                <div class="setting-desc">选择软件启动时默认显示的分类模式</div>
+              </div>
+              <select class="form-select" id="defaultMode" style="width: 200px;">
+                <option value="company-first">按公司分类</option>
+                <option value="category-first">按类别分类</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-title">存储路径</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">资料存储根目录</div>
+                <div class="setting-desc" id="currentStoragePath">未设置</div>
+              </div>
+              <button class="btn btn-secondary" onclick="selectStoragePath()">选择目录</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-display">
+          <div class="setting-section">
+            <h3 class="setting-title">界面显示</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">主题模式</div>
+                <div class="setting-desc">切换界面颜色主题</div>
+              </div>
+              <select class="form-select" id="themeSelect" style="width: 200px;">
+                <option value="light">浅色模式</option>
+                <option value="dark">深色模式</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">字体大小</div>
+                <div class="setting-desc">调整界面字体大小</div>
+              </div>
+              <select class="form-select" id="fontSizeSelect" style="width: 200px;">
+                <option value="small">小</option>
+                <option value="medium">中</option>
+                <option value="large">大</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">卡片显示数量</div>
+                <div class="setting-desc">设置每页显示的产品卡片数量</div>
+              </div>
+              <input type="number" class="form-input" id="cardCount" style="width: 100px;" min="10" max="100" value="20">
+            </div>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-title">默认模块设置</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">产品介绍</div>
+                <div class="setting-desc">默认显示产品介绍模块</div>
+              </div>
+              <div class="toggle-switch active" id="toggleProductIntro" onclick="toggleModule('productIntro')"></div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">驱动软件</div>
+                <div class="setting-desc">默认显示驱动软件模块</div>
+              </div>
+              <div class="toggle-switch active" id="toggleDriverSoftware" onclick="toggleModule('driverSoftware')"></div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">编程示例</div>
+                <div class="setting-desc">默认显示编程示例模块</div>
+              </div>
+              <div class="toggle-switch active" id="toggleProgrammingExamples" onclick="toggleModule('programmingExamples')"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-update">
+          <div class="setting-section">
+            <h3 class="setting-title">自动更新</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">启用自动更新检测</div>
+                <div class="setting-desc">开启后将在后台自动检测资料更新</div>
+              </div>
+              <div class="toggle-switch active" id="toggleAutoUpdate" onclick="toggleAutoUpdate()"></div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">更新检测频率</div>
+                <div class="setting-desc">设置自动检测更新的时间间隔</div>
+              </div>
+              <select class="form-select" id="updateFrequency" style="width: 200px;">
+                <option value="daily">每天一次</option>
+                <option value="weekly">每周一次</option>
+                <option value="monthly">每月一次</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-title">下载设置</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">下载限速</div>
+                <div class="setting-desc">设置网络下载速度限制（0表示不限速）</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="number" class="form-input" id="downloadSpeedLimit" style="width: 100px;" min="0" max="10000" value="0">
+                <span>KB/s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-backup">
+          <div class="setting-section">
+            <h3 class="setting-title">数据备份</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">创建备份</div>
+                <div class="setting-desc">手动创建当前数据的备份</div>
+              </div>
+              <button class="btn btn-primary" onclick="createBackup()">创建备份</button>
+            </div>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-title">备份历史</h3>
+            <div id="backupList" style="max-height: 300px; overflow-y: auto;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="productModal">
+    <div class="modal" style="max-width: 700px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="productModalTitle">添加产品</h2>
+        <button class="modal-close" onclick="closeProductModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">产品型号 *</label>
+          <input type="text" class="form-input" id="productModel" placeholder="例如：PLC-1200">
+        </div>
+        <div class="form-group">
+          <label class="form-label">产品名称 *</label>
+          <input type="text" class="form-input" id="productName" placeholder="例如：西门子 S7-1200 PLC">
+        </div>
+        <div class="form-group">
+          <label class="form-label">所属公司</label>
+          <input type="text" class="form-input" id="productCompany" placeholder="例如：西门子">
+        </div>
+        <div class="form-group">
+          <label class="form-label">产品类别</label>
+          <select class="form-select" id="productCategory">
+            <option value="">请选择类别</option>
+            <option value="PLC">PLC</option>
+            <option value="触摸屏">触摸屏</option>
+            <option value="伺服系统">伺服系统</option>
+            <option value="变频器">变频器</option>
+            <option value="传感器">传感器</option>
+            <option value="工业机器人">工业机器人</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">产品简介</label>
+          <textarea class="form-input" id="productDescription" rows="3" placeholder="简要描述产品信息"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">备注信息</label>
+          <textarea class="form-input" id="productNotes" rows="2" placeholder="添加调试要点、版本注意事项等"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeProductModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveProduct()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="contentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="contentModalTitle">添加资料</h2>
+        <button class="modal-close" onclick="closeContentModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">资料名称 *</label>
+          <input type="text" class="form-input" id="contentName" placeholder="例如：V2.1 驱动软件">
+        </div>
+        <div class="form-group">
+          <label class="form-label">资料类型</label>
+          <select class="form-select" id="contentType">
+            <option value="productIntro">产品介绍</option>
+            <option value="driverSoftware">驱动软件</option>
+            <option value="programmingExamples">编程示例</option>
+            <option value="custom">自定义资料</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">关联方式</label>
+          <div style="display: flex; gap: 12px; margin-top: 8px;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="linkType" value="local" checked onchange="toggleLinkType('local')">
+              <span>本地文件</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="radio" name="linkType" value="network" onchange="toggleLinkType('network')">
+              <span>网络链接</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group" id="localFileSection">
+          <label class="form-label">选择本地文件</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="localFilePath" placeholder="文件路径" readonly>
+            <button class="btn btn-secondary" onclick="selectLocalFile()">浏览</button>
+          </div>
+        </div>
+        <div class="form-group" id="networkLinkSection" style="display: none;">
+          <label class="form-label">网络链接</label>
+          <input type="url" class="form-input" id="networkUrl" placeholder="https://example.com/file.zip">
+        </div>
+        <div class="form-group">
+          <label class="form-label">备注信息</label>
+          <textarea class="form-input" id="contentNotes" rows="2" placeholder="添加资料说明"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeContentModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveContent()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="favorites-panel" id="favoritesPanel">
+    <div class="panel-header">
+      <h2 class="panel-title">⭐ 我的收藏</h2>
+      <button class="modal-close" onclick="toggleFavoritesPanel()">✕</button>
+    </div>
+    <div class="panel-body" id="favoritesList"></div>
+  </div>
+
+  <div class="context-menu" id="contextMenu">
+    <div class="context-item" onclick="contextAction('open')">
+      📂 打开
+    </div>
+    <div class="context-item" onclick="contextAction('openLocation')">
+      📍 打开文件位置
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-item" onclick="contextAction('copyPath')">
+      📋 复制路径
+    </div>
+    <div class="context-item" onclick="contextAction('edit')">
+      ✏️ 编辑
+    </div>
+    <div class="context-divider"></div>
+    <div class="context-item danger" onclick="contextAction('delete')">
+      🗑️ 删除
+    </div>
+  </div>
+
+  <div class="drag-overlay" id="dragOverlay">
+    <div class="drag-content">
+      <div class="drag-icon">📁</div>
+      <div class="drag-text">拖放文件到此处添加资料</div>
+    </div>
+  </div>
+
+  <script>
+    let appData = {
+      settings: {},
+      classification: { mode: 'company-first', tree: {} },
+      favorites: [],
+      products: [],
+      customModules: [],
+      updateHistory: []
+    };
+
+    let currentMode = 'company-first';
+    let expandedNodes = new Set();
+    let expandedModules = new Set();
+    let expandedProducts = new Set();
+    let currentProductId = null;
+    let currentModuleType = null;
+    let currentContentType = null;
+    let editingProductId = null;
+    let editingContentId = null;
+    let contextTarget = null;
+
+    async function initializeApp() {
+      try {
+        await loadAppData();
+        applyTheme();
+        renderCategoryTree();
+        renderProducts();
+        updateStatusBar();
+        setupEventListeners();
+        applySettings();
+        showToast('success', '初始化成功', '工控资料聚合管理器已加载');
+      } catch (error) {
+        console.error('初始化失败:', error);
+        showToast('error', '初始化失败', error.message);
+      }
+    }
+
+    async function loadAppData() {
+      try {
+        const settings = await window.electronAPI.getStoreData('settings');
+        const classification = await window.electronAPI.getStoreData('classification');
+        const favorites = await window.electronAPI.getStoreData('favorites');
+        const products = await window.electronAPI.getStoreData('products');
+        const customModules = await window.electronAPI.getStoreData('customModules');
+        const updateHistory = await window.electronAPI.getStoreData('updateHistory');
+
+        appData.settings = settings || getDefaultSettings();
+        appData.classification = classification || { mode: 'company-first', tree: {} };
+        appData.favorites = favorites || [];
+        appData.products = products || getSampleProducts();
+        appData.customModules = customModules || [];
+        appData.updateHistory = updateHistory || [];
+
+        if (products === undefined) {
+          await window.electronAPI.setStoreData('products', appData.products);
+        }
+
+        currentMode = appData.settings.classificationMode || 'company-first';
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        appData = {
+          settings: getDefaultSettings(),
+          classification: { mode: 'company-first', tree: {} },
+          favorites: [],
+          products: getSampleProducts(),
+          customModules: [],
+          updateHistory: []
+        };
+      }
+    }
+
+    function getDefaultSettings() {
+      return {
+        theme: 'light',
+        classificationMode: 'company-first',
+        rootStoragePath: '',
+        autoUpdate: true,
+        updateFrequency: 'weekly',
+        downloadSpeedLimit: 0,
+        fontSize: 'medium',
+        cardDisplayCount: 20,
+        defaultModuleVisibility: {
+          productIntro: true,
+          driverSoftware: true,
+          programmingExamples: true
+        }
+      };
+    }
+
+    function getSampleProducts() {
+      return [
+        {
+          id: '1',
+          model: 'S7-1200',
+          name: '西门子 S7-1200 PLC',
+          company: '西门子',
+          category: 'PLC',
+          description: 'SIMATIC S7-1200 小型可编程控制器',
+          notes: '支持PROFINET通信',
+          favorite: false,
+          contents: {
+            productIntro: [
+              { id: 'p1-1', name: '产品手册', type: 'local', path: 'C:\\Docs\\S7-1200\\Manual.pdf' },
+              { id: 'p1-2', name: '技术规格', type: 'network', url: 'https://example.com/s7-1200-specs.pdf' }
+            ],
+            driverSoftware: [
+              { id: 'd1-1', name: 'TIA Portal V17', type: 'local', path: 'C:\\Software\\TIAPortal\\v17.exe' }
+            ],
+            programmingExamples: [
+              { id: 'e1-1', name: '基础编程示例', type: 'local', path: 'C:\\Examples\\S7-1200\\Basic.zip' }
+            ],
+            custom: []
+          }
+        },
+        {
+          id: '2',
+          model: 'GT2310',
+          name: '三菱 GOT2000 触摸屏',
+          company: '三菱电机',
+          category: '触摸屏',
+          description: 'GOT2000 系列图形操作终端',
+          notes: '支持多语言界面',
+          favorite: false,
+          contents: {
+            productIntro: [
+              { id: 'p2-1', name: '产品介绍', type: 'local', path: 'C:\\Docs\\GOT2000\\Intro.pdf' }
+            ],
+            driverSoftware: [
+              { id: 'd2-1', name: 'GT Works3', type: 'network', url: 'https://example.com/gtworks3.zip' }
+            ],
+            programmingExamples: [
+              { id: 'e2-1', name: '画面设计示例', type: 'local', path: 'C:\\Examples\\GOT2000\\HMI.zip' }
+            ],
+            custom: []
+          }
+        },
+        {
+          id: '3',
+          model: 'MR-J5',
+          name: '三菱 MR-J5 伺服系统',
+          company: '三菱电机',
+          category: '伺服系统',
+          description: 'MR-J5 系列通用交流伺服系统',
+          notes: '高响应、高精度',
+          favorite: false,
+          contents: {
+            productIntro: [
+              { id: 'p3-1', name: '产品手册', type: 'local', path: 'C:\\Docs\\MR-J5\\Manual.pdf' }
+            ],
+            driverSoftware: [
+              { id: 'd3-1', name: 'MR Configurator2', type: 'local', path: 'C:\\Software\\MRConfig2\\setup.exe' }
+            ],
+            programmingExamples: [
+              { id: 'e3-1', name: '参数设置示例', type: 'local', path: 'C:\\Examples\\MR-J5\\Params.zip' }
+            ],
+            custom: []
+          }
+        },
+        {
+          id: '4',
+          model: 'FR-A800',
+          name: '三菱 FR-A800 变频器',
+          company: '三菱电机',
+          category: '变频器',
+          description: 'FR-A800 系列高性能变频器',
+          notes: '支持矢量控制',
+          favorite: false,
+          contents: {
+            productIntro: [
+              { id: 'p4-1', name: '技术手册', type: 'local', path: 'C:\\Docs\\FR-A800\\Tech.pdf' }
+            ],
+            driverSoftware: [
+              { id: 'd4-1', name: 'FR Configurator2', type: 'network', url: 'https://example.com/fr-config.zip' }
+            ],
+            programmingExamples: [
+              { id: 'e4-1', name: '参数调试示例', type: 'local', path: 'C:\\Examples\\FR-A800\\Debug.zip' }
+            ],
+            custom: []
+          }
+        },
+        {
+          id: '5',
+          model: 'FX5U',
+          name: '三菱 FX5U PLC',
+          company: '三菱电机',
+          category: 'PLC',
+          description: 'MELSEC iQ-F 系列 FX5U CPU模块',
+          notes: '内置高速计数器和模拟量',
+          favorite: false,
+          contents: {
+            productIntro: [
+              { id: 'p5-1', name: '产品手册', type: 'local', path: 'C:\\Docs\\FX5U\\Manual.pdf' }
+            ],
+            driverSoftware: [
+              { id: 'd5-1', name: 'GX Works3', type: 'local', path: 'C:\\Software\\GXWorks3\\setup.exe' }
+            ],
+            programmingExamples: [
+              { id: 'e5-1', name: '编程示例集', type: 'local', path: 'C:\\Examples\\FX5U\\Samples.zip' }
+            ],
+            custom: []
+          }
+        },
+        {
+          id: '6',
+          model: 'SIMATIC HMI',
+          name: '西门子 SIMATIC HMI',
+          company: '西门子',
+          category: '触摸屏',
+          description: 'SIMATIC HMI 精简面板',
+          notes: '支持PROFINET',
+          favorite: false,
+          contents: {
+            productIntro: [
+              { id: 'p6-1', name: '产品介绍', type: 'local', path: 'C:\\Docs\\HMI\\Intro.pdf' }
+            ],
+            driverSoftware: [
+              { id: 'd6-1', name: 'WinCC Flexible', type: 'network', url: 'https://example.com/wincc-flex.zip' }
+            ],
+            programmingExamples: [
+              { id: 'e6-1', name: '项目模板', type: 'local', path: 'C:\\Examples\\HMI\\Templates.zip' }
+            ],
+            custom: []
+          }
+        }
+      ];
+    }
+
+    async function saveAppData() {
+      try {
+        await window.electronAPI.setStoreData('settings', appData.settings);
+        await window.electronAPI.setStoreData('classification', appData.classification);
+        await window.electronAPI.setStoreData('favorites', appData.favorites);
+        await window.electronAPI.setStoreData('products', appData.products);
+        await window.electronAPI.setStoreData('customModules', appData.customModules);
+        await window.electronAPI.setStoreData('updateHistory', appData.updateHistory);
+      } catch (error) {
+        console.error('保存数据失败:', error);
+        showToast('error', '保存失败', error.message);
+      }
+    }
+
+    function applyTheme() {
+      const theme = appData.settings.theme || 'light';
+      if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+      } else {
+        document.body.classList.remove('dark-theme');
+      }
+    }
+
+    function applySettings() {
+      const mode = appData.settings.classificationMode || 'company-first';
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      currentMode = mode;
+
+      document.getElementById('themeSelect').value = appData.settings.theme || 'light';
+      document.getElementById('fontSizeSelect').value = appData.settings.fontSize || 'medium';
+      document.getElementById('cardCount').value = appData.settings.cardDisplayCount || 20;
+      document.getElementById('defaultMode').value = mode;
+      document.getElementById('updateFrequency').value = appData.settings.updateFrequency || 'weekly';
+      document.getElementById('downloadSpeedLimit').value = appData.settings.downloadSpeedLimit || 0;
+
+      const visibility = appData.settings.defaultModuleVisibility || {
+        productIntro: true,
+        driverSoftware: true,
+        programmingExamples: true
+      };
+
+      document.getElementById('toggleProductIntro').classList.toggle('active', visibility.productIntro);
+      document.getElementById('toggleDriverSoftware').classList.toggle('active', visibility.driverSoftware);
+      document.getElementById('toggleProgrammingExamples').classList.toggle('active', visibility.programmingExamples);
+      document.getElementById('toggleAutoUpdate').classList.toggle('active', appData.settings.autoUpdate !== false);
+
+      const storagePath = appData.settings.rootStoragePath || '未设置';
+      document.getElementById('storagePath').textContent = storagePath.length > 40 ? '...' + storagePath.slice(-37) : storagePath;
+      document.getElementById('currentStoragePath').textContent = storagePath;
+
+      const favoritesCount = appData.favorites.length;
+      const badge = document.getElementById('favoritesBadge');
+      if (favoritesCount > 0) {
+        badge.style.display = 'inline';
+        badge.textContent = favoritesCount;
+      } else {
+        badge.style.display = 'none';
+      }
+
+      applyFontSize();
+    }
+
+    function applyFontSize() {
+      const size = appData.settings.fontSize || 'medium';
+      const sizes = { small: '12px', medium: '14px', large: '16px' };
+      document.body.style.fontSize = sizes[size];
+    }
+
+    function renderCategoryTree() {
+      const treeContainer = document.getElementById('categoryTree');
+      const data = getGroupedData();
+
+      let html = '';
+
+      if (currentMode === 'company-first') {
+        Object.keys(data).sort().forEach(company => {
+          const categories = data[company];
+          const isExpanded = expandedNodes.has(company);
+          html += `
+            <div class="tree-node">
+              <div class="tree-item" onclick="toggleNode('${escapeHtml(company)}')">
+                <span class="tree-toggle ${isExpanded ? '' : 'collapsed'}">▼</span>
+                <span class="tree-item-icon">🏢</span>
+                <span class="tree-item-text">${escapeHtml(company)}</span>
+                <span class="tree-item-count">${Object.keys(categories).length}</span>
+              </div>
+              <div class="tree-children ${isExpanded ? '' : 'collapsed'}">
+          `;
+
+          Object.keys(categories).sort().forEach(category => {
+            const products = categories[category];
+            const nodeKey = `${company}|${category}`;
+            const isCatExpanded = expandedNodes.has(nodeKey);
+            html += `
+              <div class="tree-node">
+                <div class="tree-item" onclick="toggleNode('${escapeHtml(nodeKey)}')">
+                  <span class="tree-toggle ${isCatExpanded ? '' : 'collapsed'}">▼</span>
+                  <span class="tree-item-icon">📦</span>
+                  <span class="tree-item-text">${escapeHtml(category)}</span>
+                  <span class="tree-item-count">${products.length}</span>
+                </div>
+                <div class="tree-children ${isCatExpanded ? '' : 'collapsed'}">
+            `;
+
+            products.forEach(product => {
+              html += `
+                <div class="tree-node">
+                  <div class="tree-item" onclick="selectProduct('${product.id}')">
+                    <span class="tree-item-icon">📄</span>
+                    <span class="tree-item-text">${escapeHtml(product.model)} - ${escapeHtml(product.name)}</span>
+                  </div>
+                </div>
+              `;
+            });
+
+            html += '</div></div>';
+          });
+
+          html += '</div></div>';
+        });
+      } else {
+        Object.keys(data).sort().forEach(category => {
+          const companies = data[category];
+          const isExpanded = expandedNodes.has(category);
+          html += `
+            <div class="tree-node">
+              <div class="tree-item" onclick="toggleNode('${escapeHtml(category)}')">
+                <span class="tree-toggle ${isExpanded ? '' : 'collapsed'}">▼</span>
+                <span class="tree-item-icon">📦</span>
+                <span class="tree-item-text">${escapeHtml(category)}</span>
+                <span class="tree-item-count">${Object.keys(companies).length}</span>
+              </div>
+              <div class="tree-children ${isExpanded ? '' : 'collapsed'}">
+          `;
+
+          Object.keys(companies).sort().forEach(company => {
+            const products = companies[company];
+            const nodeKey = `${category}|${company}`;
+            const isCompExpanded = expandedNodes.has(nodeKey);
+            html += `
+              <div class="tree-node">
+                <div class="tree-item" onclick="toggleNode('${escapeHtml(nodeKey)}')">
+                  <span class="tree-toggle ${isCompExpanded ? '' : 'collapsed'}">▼</span>
+                  <span class="tree-item-icon">🏢</span>
+                  <span class="tree-item-text">${escapeHtml(company)}</span>
+                  <span class="tree-item-count">${products.length}</span>
+                </div>
+                <div class="tree-children ${isCompExpanded ? '' : 'collapsed'}">
+            `;
+
+            products.forEach(product => {
+              html += `
+                <div class="tree-node">
+                  <div class="tree-item" onclick="selectProduct('${product.id}')">
+                    <span class="tree-item-icon">📄</span>
+                    <span class="tree-item-text">${escapeHtml(product.model)} - ${escapeHtml(product.name)}</span>
+                  </div>
+                </div>
+              `;
+            });
+
+            html += '</div></div>';
+          });
+
+          html += '</div></div>';
+        });
+      }
+
+      treeContainer.innerHTML = html;
+    }
+
+    function getGroupedData() {
+      const grouped = {};
+
+      appData.products.forEach(product => {
+        if (currentMode === 'company-first') {
+          if (!grouped[product.company]) {
+            grouped[product.company] = {};
+          }
+          if (!grouped[product.company][product.category]) {
+            grouped[product.company][product.category] = [];
+          }
+          grouped[product.company][product.category].push(product);
+        } else {
+          if (!grouped[product.category]) {
+            grouped[product.category] = {};
+          }
+          if (!grouped[product.category][product.company]) {
+            grouped[product.category][product.company] = [];
+          }
+          grouped[product.category][product.company].push(product);
+        }
+      });
+
+      return grouped;
+    }
+
+    function toggleNode(nodeKey) {
+      if (expandedNodes.has(nodeKey)) {
+        expandedNodes.delete(nodeKey);
+      } else {
+        expandedNodes.add(nodeKey);
+      }
+      renderCategoryTree();
+    }
+
+    function expandAll() {
+      const data = getGroupedData();
+      if (currentMode === 'company-first') {
+        Object.keys(data).forEach(company => {
+          expandedNodes.add(company);
+          Object.keys(data[company]).forEach(category => {
+            expandedNodes.add(`${company}|${category}`);
+          });
+        });
+      } else {
+        Object.keys(data).forEach(category => {
+          expandedNodes.add(category);
+          Object.keys(data[category]).forEach(company => {
+            expandedNodes.add(`${category}|${company}`);
+          });
+        });
+      }
+      renderCategoryTree();
+    }
+
+    function collapseAll() {
+      expandedNodes.clear();
+      renderCategoryTree();
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('productsGrid');
+      const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
+
+      let filteredProducts = appData.products;
+
+      if (searchTerm) {
+        filteredProducts = filteredProducts.filter(p =>
+          p.model.toLowerCase().includes(searchTerm) ||
+          p.name.toLowerCase().includes(searchTerm) ||
+          p.company.toLowerCase().includes(searchTerm) ||
+          p.category.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      if (filteredProducts.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-icon">📦</div>
+            <div class="empty-text">暂无产品</div>
+            <div class="empty-hint">点击左侧"+"按钮添加产品</div>
+          </div>
+        `;
+        return;
+      }
+
+      const visibility = appData.settings.defaultModuleVisibility || {
+        productIntro: true,
+        driverSoftware: true,
+        programmingExamples: true
+      };
+
+      grid.innerHTML = filteredProducts.map(product => {
+        const isFavorite = appData.favorites.includes(product.id);
+        const isExpanded = expandedProducts.has(product.id);
+
+        return `
+          <div class="product-card ${isExpanded ? 'expanded' : ''} ${isFavorite ? 'favorite' : ''}"
+               id="product-${product.id}"
+               data-id="${product.id}"
+               onmouseenter="showTooltip(event, '${escapeHtml(product.description || '')}')"
+               onmouseleave="hideTooltip()">
+            <button class="favorite-btn ${isFavorite ? 'active' : ''}" onclick="toggleFavorite('${product.id}', event)">
+              ${isFavorite ? '⭐' : '☆'}
+            </button>
+            <div class="product-header" onclick="toggleProductExpand('${product.id}')">
+              <div class="product-thumbnail">${product.model.charAt(0)}</div>
+              <div class="product-info">
+                <div class="product-name">${escapeHtml(product.name)}</div>
+                <div class="product-model">${escapeHtml(product.model)}</div>
+                <div class="product-tags">
+                  <span class="tag">${escapeHtml(product.company)}</span>
+                  <span class="tag">${escapeHtml(product.category)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="product-dropdown ${isExpanded ? 'show' : ''}">
+              <div class="module-list">
+                ${visibility.productIntro ? renderModule(product, 'productIntro', '产品介绍', '📖') : ''}
+                ${visibility.driverSoftware ? renderModule(product, 'driverSoftware', '驱动软件', '💾') : ''}
+                ${visibility.programmingExamples ? renderModule(product, 'programmingExamples', '编程示例', '💻') : ''}
+                ${renderCustomModules(product)}
+                <button class="btn btn-secondary" style="width: 100%; margin-top: 8px;" onclick="openAddContentModal('${product.id}')">
+                  ➕ 添加资料
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('totalProducts').textContent = appData.products.length;
+    }
+
+    function renderModule(product, moduleType, moduleName, icon) {
+      const contents = product.contents[moduleType] || [];
+      const isModuleExpanded = expandedModules.has(`${product.id}|${moduleType}`);
+      const allContents = [...contents, ...appData.customModules.filter(m => m.productId === product.id && m.type === moduleType)];
+
+      return `
+        <div class="module-item">
+          <div class="module-header" onclick="toggleModuleExpand('${product.id}', '${moduleType}')">
+            <div class="module-icon">${icon}</div>
+            <div class="module-info">
+              <div class="module-name">${moduleName}</div>
+              <div class="module-count">${allContents.length} 个项目</div>
+            </div>
+            <div class="module-toggle ${isModuleExpanded ? '' : 'collapsed'}">▼</div>
+          </div>
+          <div class="module-content ${isModuleExpanded ? '' : 'collapsed'}">
+            ${allContents.length === 0 ?
+              '<div style="padding: 12px; text-align: center; color: var(--text-secondary); font-size: 13px;">暂无资料</div>' :
+              allContents.map(content => renderContentItem(product.id, moduleType, content)).join('')
+            }
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCustomModules(product) {
+      const customItems = appData.customModules.filter(m => m.productId === product.id && m.type === 'custom');
+      if (customItems.length === 0) return '';
+
+      const isModuleExpanded = expandedModules.has(`${product.id}|custom`);
+
+      return `
+        <div class="module-item">
+          <div class="module-header" onclick="toggleModuleExpand('${product.id}', 'custom')">
+            <div class="module-icon">📁</div>
+            <div class="module-info">
+              <div class="module-name">自定义资料</div>
+              <div class="module-count">${customItems.length} 个项目</div>
+            </div>
+            <div class="module-toggle ${isModuleExpanded ? '' : 'collapsed'}">▼</div>
+          </div>
+          <div class="module-content ${isModuleExpanded ? '' : 'collapsed'}">
+            ${customItems.map(content => renderContentItem(product.id, 'custom', content)).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderContentItem(productId, moduleType, content) {
+      const isLocal = content.type === 'local';
+      const iconClass = isLocal ? 'local' : 'network';
+      const icon = isLocal ? '📁' : '🔗';
+      const path = isLocal ? content.path : content.url;
+
+      return `
+        <div class="content-item" oncontextmenu="showContextMenu(event, '${productId}', '${moduleType}', '${content.id}')">
+          <div class="content-icon ${iconClass}">${icon}</div>
+          <div class="content-info">
+            <div class="content-name">${escapeHtml(content.name)}</div>
+            <div class="content-path">${escapeHtml(path || '')}</div>
+          </div>
+          <div class="content-actions">
+            ${isLocal ?
+              `<button class="action-btn" onclick="openFile('${escapeHtml(content.path)}')" title="打开文件">▶️</button>
+               <button class="action-btn" onclick="openFileLocation('${escapeHtml(content.path)}')" title="打开位置">📍</button>` :
+              `<button class="action-btn" onclick="downloadFromUrl('${escapeHtml(content.url)}', '${productId}', '${content.id}')" title="下载文件">⬇️</button>`
+            }
+            <button class="action-btn danger" onclick="deleteContent('${productId}', '${moduleType}', '${content.id}')" title="删除">🗑️</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleProductExpand(productId) {
+      if (expandedProducts.has(productId)) {
+        expandedProducts.delete(productId);
+      } else {
+        expandedProducts.add(productId);
+      }
+      renderProducts();
+    }
+
+    function toggleModuleExpand(productId, moduleType) {
+      const key = `${productId}|${moduleType}`;
+      if (expandedModules.has(key)) {
+        expandedModules.delete(key);
+      } else {
+        expandedModules.add(key);
+      }
+      renderProducts();
+    }
+
+    function selectProduct(productId) {
+      expandedProducts.clear();
+      expandedProducts.add(productId);
+      currentProductId = productId;
+      renderProducts();
+
+      setTimeout(() => {
+        const element = document.getElementById(`product-${productId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+
+    function toggleFavorite(productId, event) {
+      event.stopPropagation();
+
+      const index = appData.favorites.indexOf(productId);
+      if (index > -1) {
+        appData.favorites.splice(index, 1);
+        showToast('info', '已取消收藏', '');
+      } else {
+        appData.favorites.push(productId);
+        showToast('success', '已添加收藏', '');
+      }
+
+      saveAppData();
+      renderProducts();
+      applySettings();
+    }
+
+    async function openFile(filePath) {
+      if (!filePath) {
+        showToast('warning', '文件路径为空', '');
+        return;
+      }
+
+      try {
+        const success = await window.electronAPI.openFile(filePath);
+        if (!success) {
+          showToast('error', '文件不存在', filePath);
+        }
+      } catch (error) {
+        showToast('error', '打开文件失败', error.message);
+      }
+    }
+
+    async function openFileLocation(filePath) {
+      if (!filePath) {
+        showToast('warning', '文件路径为空', '');
+        return;
+      }
+
+      try {
+        await window.electronAPI.openFileLocation(filePath);
+      } catch (error) {
+        showToast('error', '打开位置失败', error.message);
+      }
+    }
+
+    async function downloadFromUrl(url, productId, contentId) {
+      const product = appData.products.find(p => p.id === productId);
+      if (!product) return;
+
+      const storagePath = appData.settings.rootStoragePath;
+      if (!storagePath) {
+        showToast('warning', '请先设置存储路径', '在设置中配置资料存储根目录');
+        return;
+      }
+
+      const savePath = `${storagePath}\\${product.company}\\${product.category}\\${product.model}\\${url.split('/').pop()}`;
+
+      try {
+        showToast('info', '开始下载', url.split('/').pop());
+        await window.electronAPI.downloadFile(url, savePath);
+
+        const content = findContent(productId, contentId);
+        if (content) {
+          content.type = 'local';
+          content.path = savePath;
+          delete content.url;
+        }
+
+        await saveAppData();
+        renderProducts();
+        showToast('success', '下载完成', savePath);
+      } catch (error) {
+        showToast('error', '下载失败', error.message);
+      }
+    }
+
+    function findContent(productId, contentId) {
+      const product = appData.products.find(p => p.id === productId);
+      if (!product) return null;
+
+      for (const moduleType of ['productIntro', 'driverSoftware', 'programmingExamples']) {
+        const content = product.contents[moduleType]?.find(c => c.id === contentId);
+        if (content) return content;
+      }
+
+      return appData.customModules.find(m => m.id === contentId);
+    }
+
+    function deleteContent(productId, moduleType, contentId) {
+      showConfirmDialog('确认删除', '确定要删除这条资料吗？', async () => {
+        const product = appData.products.find(p => p.id === productId);
+        if (!product) return;
+
+        if (moduleType === 'custom') {
+          appData.customModules = appData.customModules.filter(m => m.id !== contentId);
+        } else if (product.contents[moduleType]) {
+          product.contents[moduleType] = product.contents[moduleType].filter(c => c.id !== contentId);
+        }
+
+        await saveAppData();
+        renderProducts();
+        showToast('success', '已删除', '');
+      });
+    }
+
+    function showContextMenu(event, productId, moduleType, contentId) {
+      event.preventDefault();
+      contextTarget = { productId, moduleType, contentId };
+
+      const menu = document.getElementById('contextMenu');
+      menu.style.left = event.clientX + 'px';
+      menu.style.top = event.clientY + 'px';
+      menu.classList.add('show');
+
+      document.addEventListener('click', hideContextMenu, { once: true });
+    }
+
+    function hideContextMenu() {
+      document.getElementById('contextMenu').classList.remove('show');
+    }
+
+    async function contextAction(action) {
+      if (!contextTarget) return;
+
+      const { productId, moduleType, contentId } = contextTarget;
+      const content = findContent(productId, contentId);
+
+      switch (action) {
+        case 'open':
+          if (content?.path) await openFile(content.path);
+          break;
+        case 'openLocation':
+          if (content?.path) await openFileLocation(content.path);
+          break;
+        case 'copyPath':
+          if (content?.path) {
+            await navigator.clipboard.writeText(content.path);
+            showToast('success', '已复制', content.path);
+          }
+          break;
+        case 'edit':
+          openEditContentModal(productId, moduleType, content);
+          break;
+        case 'delete':
+          deleteContent(productId, moduleType, contentId);
+          break;
+      }
+
+      hideContextMenu();
+    }
+
+    function updateBreadcrumb(level, text) {
+      const breadcrumb = document.getElementById('breadcrumb');
+
+      if (level === 0) {
+        breadcrumb.innerHTML = '<span class="breadcrumb-item current">全部产品</span>';
+      } else if (level === 1) {
+        breadcrumb.innerHTML = `
+          <span class="breadcrumb-item" onclick="resetView()">全部产品</span>
+          <span class="breadcrumb-separator">›</span>
+          <span class="breadcrumb-item current">${text}</span>
+        `;
+      } else if (level === 2) {
+        breadcrumb.innerHTML = `
+          <span class="breadcrumb-item" onclick="resetView()">全部产品</span>
+          <span class="breadcrumb-separator">›</span>
+          <span class="breadcrumb-item">${text}</span>
+        `;
+      }
+    }
+
+    function resetView() {
+      expandedProducts.clear();
+      updateBreadcrumb(0);
+      renderProducts();
+    }
+
+    function switchMode(mode) {
+      if (currentMode === mode) return;
+
+      currentMode = mode;
+      appData.settings.classificationMode = mode;
+      expandedNodes.clear();
+
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+
+      renderCategoryTree();
+      saveAppData();
+      showToast('success', '已切换分类模式', mode === 'company-first' ? '按公司分类' : '按类别分类');
+    }
+
+    async function selectStoragePath() {
+      try {
+        const path = await window.electronAPI.selectDirectory();
+        if (path) {
+          appData.settings.rootStoragePath = path;
+          document.getElementById('currentStoragePath').textContent = path;
+          document.getElementById('storagePath').textContent = path.length > 40 ? '...' + path.slice(-37) : path;
+          await saveAppData();
+          showToast('success', '存储路径已设置', path);
+        }
+      } catch (error) {
+        showToast('error', '选择路径失败', error.message);
+      }
+    }
+
+    function toggleModule(moduleName) {
+      const toggle = document.getElementById(`toggle${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}`);
+      toggle.classList.toggle('active');
+
+      if (!appData.settings.defaultModuleVisibility) {
+        appData.settings.defaultModuleVisibility = {};
+      }
+      appData.settings.defaultModuleVisibility[moduleName] = toggle.classList.contains('active');
+
+      saveAppData();
+      renderProducts();
+    }
+
+    function toggleAutoUpdate() {
+      const toggle = document.getElementById('toggleAutoUpdate');
+      toggle.classList.toggle('active');
+      appData.settings.autoUpdate = toggle.classList.contains('active');
+      saveAppData();
+    }
+
+    function openAddProductModal() {
+      editingProductId = null;
+      document.getElementById('productModalTitle').textContent = '添加产品';
+      document.getElementById('productModel').value = '';
+      document.getElementById('productName').value = '';
+      document.getElementById('productCompany').value = '';
+      document.getElementById('productCategory').value = '';
+      document.getElementById('productDescription').value = '';
+      document.getElementById('productNotes').value = '';
+      document.getElementById('productModal').classList.add('show');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.remove('show');
+      editingProductId = null;
+    }
+
+    async function saveProduct() {
+      const model = document.getElementById('productModel').value.trim();
+      const name = document.getElementById('productName').value.trim();
+      const company = document.getElementById('productCompany').value.trim();
+      const category = document.getElementById('productCategory').value;
+      const description = document.getElementById('productDescription').value.trim();
+      const notes = document.getElementById('productNotes').value.trim();
+
+      if (!model || !name) {
+        showToast('warning', '请填写必填项', '产品型号和名称不能为空');
+        return;
+      }
+
+      if (editingProductId) {
+        const product = appData.products.find(p => p.id === editingProductId);
+        if (product) {
+          product.model = model;
+          product.name = name;
+          product.company = company || product.company;
+          product.category = category || product.category;
+          product.description = description;
+          product.notes = notes;
+        }
+        showToast('success', '产品已更新', model);
+      } else {
+        const newProduct = {
+          id: Date.now().toString(),
+          model,
+          name,
+          company: company || '未知厂商',
+          category: category || '其他',
+          description,
+          notes,
+          favorite: false,
+          contents: {
+            productIntro: [],
+            driverSoftware: [],
+            programmingExamples: [],
+            custom: []
+          }
+        };
+        appData.products.push(newProduct);
+        showToast('success', '产品已添加', model);
+      }
+
+      await saveAppData();
+      renderCategoryTree();
+      renderProducts();
+      closeProductModal();
+    }
+
+    function openAddContentModal(productId) {
+      currentProductId = productId;
+      currentContentType = 'productIntro';
+      editingContentId = null;
+
+      document.getElementById('contentModalTitle').textContent = '添加资料';
+      document.getElementById('contentName').value = '';
+      document.getElementById('contentType').value = 'productIntro';
+      document.getElementById('localFilePath').value = '';
+      document.getElementById('networkUrl').value = '';
+      document.getElementById('contentNotes').value = '';
+
+      toggleLinkType('local');
+      document.getElementById('contentModal').classList.add('show');
+    }
+
+    function openEditContentModal(productId, moduleType, content) {
+      currentProductId = productId;
+      currentContentType = moduleType;
+      editingContentId = content.id;
+
+      document.getElementById('contentModalTitle').textContent = '编辑资料';
+      document.getElementById('contentName').value = content.name;
+      document.getElementById('contentType').value = moduleType;
+      document.getElementById('contentNotes').value = content.notes || '';
+
+      if (content.type === 'local') {
+        document.querySelector('input[name="linkType"][value="local"]').checked = true;
+        toggleLinkType('local');
+        document.getElementById('localFilePath').value = content.path || '';
+      } else {
+        document.querySelector('input[name="linkType"][value="network"]').checked = true;
+        toggleLinkType('network');
+        document.getElementById('networkUrl').value = content.url || '';
+      }
+
+      document.getElementById('contentModal').classList.add('show');
+    }
+
+    function closeContentModal() {
+      document.getElementById('contentModal').classList.remove('show');
+      currentProductId = null;
+      currentContentType = null;
+      editingContentId = null;
+    }
+
+    function toggleLinkType(type) {
+      const localSection = document.getElementById('localFileSection');
+      const networkSection = document.getElementById('networkLinkSection');
+
+      if (type === 'local') {
+        localSection.style.display = 'block';
+        networkSection.style.display = 'none';
+      } else {
+        localSection.style.display = 'none';
+        networkSection.style.display = 'block';
+      }
+    }
+
+    async function selectLocalFile() {
+      try {
+        const files = await window.electronAPI.selectFiles();
+        if (files && files.length > 0) {
+          document.getElementById('localFilePath').value = files[0];
+        }
+      } catch (error) {
+        showToast('error', '选择文件失败', error.message);
+      }
+    }
+
+    async function saveContent() {
+      const name = document.getElementById('contentName').value.trim();
+      const type = document.getElementById('contentType').value;
+      const linkType = document.querySelector('input[name="linkType"]:checked').value;
+      const localPath = document.getElementById('localFilePath').value.trim();
+      const networkUrl = document.getElementById('networkUrl').value.trim();
+      const notes = document.getElementById('contentNotes').value.trim();
+
+      if (!name) {
+        showToast('warning', '请填写资料名称', '');
+        return;
+      }
+
+      const product = appData.products.find(p => p.id === currentProductId);
+      if (!product) return;
+
+      const contentData = {
+        id: editingContentId || Date.now().toString(),
+        name,
+        type: linkType,
+        notes
+      };
+
+      if (linkType === 'local') {
+        if (!localPath) {
+          showToast('warning', '请选择本地文件', '');
+          return;
+        }
+        contentData.path = localPath;
+      } else {
+        if (!networkUrl) {
+          showToast('warning', '请填写网络链接', '');
+          return;
+        }
+        contentData.url = networkUrl;
+      }
+
+      if (type === 'custom') {
+        if (editingContentId) {
+          const existing = appData.customModules.find(m => m.id === editingContentId);
+          if (existing) {
+            Object.assign(existing, contentData);
+          }
+        } else {
+          appData.customModules.push({
+            ...contentData,
+            productId: currentProductId,
+            type: 'custom'
+          });
+        }
+      } else {
+        if (!product.contents[type]) {
+          product.contents[type] = [];
+        }
+
+        if (editingContentId) {
+          const index = product.contents[type].findIndex(c => c.id === editingContentId);
+          if (index > -1) {
+            product.contents[type][index] = contentData;
+          }
+        } else {
+          product.contents[type].push(contentData);
+        }
+      }
+
+      await saveAppData();
+      renderProducts();
+      closeContentModal();
+      showToast('success', editingContentId ? '资料已更新' : '资料已添加', name);
+    }
+
+    function toggleFavoritesPanel() {
+      const panel = document.getElementById('favoritesPanel');
+      panel.classList.toggle('show');
+
+      if (panel.classList.contains('show')) {
+        renderFavoritesList();
+      }
+    }
+
+    function renderFavoritesList() {
+      const list = document.getElementById('favoritesList');
+
+      if (appData.favorites.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⭐</div>
+            <div class="empty-text">暂无收藏</div>
+            <div class="empty-hint">点击产品卡片上的星标添加收藏</div>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = appData.favorites.map(productId => {
+        const product = appData.products.find(p => p.id === productId);
+        if (!product) return '';
+
+        return `
+          <div class="favorite-item" onclick="goToProduct('${productId}')">
+            <div class="product-thumbnail" style="width: 48px; height: 48px; font-size: 18px; margin-right: 12px;">
+              ${product.model.charAt(0)}
+            </div>
+            <div style="flex: 1;">
+              <div class="product-name">${escapeHtml(product.name)}</div>
+              <div class="product-model">${escapeHtml(product.model)}</div>
+            </div>
+            <button class="icon-btn" onclick="toggleFavorite('${productId}', event)" title="取消收藏">⭐</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function goToProduct(productId) {
+      toggleFavoritesPanel();
+      selectProduct(productId);
+    }
+
+    async function checkForUpdates() {
+      showToast('info', '正在检查更新...', '请稍候');
+
+      setTimeout(() => {
+        showToast('success', '检查完成', '已是最新版本');
+        document.getElementById('lastUpdate').textContent = `最后更新：${new Date().toLocaleString()}`;
+      }, 2000);
+    }
+
+    async function createBackup() {
+      try {
+        await window.electronAPI.createBackup();
+        showToast('success', '备份创建成功', '备份文件已保存');
+        loadBackupList();
+      } catch (error) {
+        showToast('error', '备份失败', error.message);
+      }
+    }
+
+    async function loadBackupList() {
+      const backupList = document.getElementById('backupList');
+      const backups = await window.electronAPI.getStoreData('backups') || [];
+
+      if (backups.length === 0) {
+        backupList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">暂无备份记录</div>';
+        return;
+      }
+
+      backupList.innerHTML = backups.reverse().slice(0, 10).map((backup, index) => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-color); border-radius: 6px; margin-bottom: 8px;">
+          <div>
+            <div style="font-size: 14px; color: var(--text-primary);">备份 ${index + 1}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">${new Date(backup.timestamp).toLocaleString()}</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="restoreBackup('${backup.path}')">恢复</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function restoreBackup(backupPath) {
+      showConfirmDialog('确认恢复', '恢复备份将覆盖当前所有数据，确定要继续吗？', async () => {
+        try {
+          const content = await window.electronAPI.readFile(backupPath);
+          if (content) {
+            const data = JSON.parse(content);
+            Object.assign(appData, data);
+            await saveAppData();
+            applySettings();
+            renderCategoryTree();
+            renderProducts();
+            showToast('success', '恢复成功', '数据已恢复到备份时的状态');
+          }
+        } catch (error) {
+          showToast('error', '恢复失败', error.message);
+        }
+      });
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settingsModal').classList.add('show');
+      loadBackupList();
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('show');
+    }
+
+    async function exportData() {
+      try {
+        const exportData = {
+          products: appData.products,
+          favorites: appData.favorites,
+          customModules: appData.customModules,
+          settings: appData.settings,
+          exportTime: new Date().toISOString()
+        };
+
+        const success = await window.electronAPI.exportData(exportData);
+        if (success) {
+          showToast('success', '导出成功', '配置文件已保存');
+        }
+      } catch (error) {
+        showToast('error', '导出失败', error.message);
+      }
+    }
+
+    async function importData() {
+      try {
+        const data = await window.electronAPI.importData();
+        if (data) {
+          if (data.products) appData.products = data.products;
+          if (data.favorites) appData.favorites = data.favorites;
+          if (data.customModules) appData.customModules = data.customModules;
+
+          await saveAppData();
+          renderCategoryTree();
+          renderProducts();
+          applySettings();
+          showToast('success', '导入成功', '配置文件已加载');
+        }
+      } catch (error) {
+        showToast('error', '导入失败', error.message);
+      }
+    }
+
+    function showConfirmDialog(title, message, onConfirm) {
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay show';
+      modal.innerHTML = `
+        <div class="modal" style="max-width: 400px;">
+          <div class="modal-header">
+            <h2 class="modal-title">${title}</h2>
+          </div>
+          <div class="modal-body">
+            <p>${message}</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">取消</button>
+            <button class="btn btn-danger" id="confirmBtn">确定</button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+      document.getElementById('confirmBtn').onclick = () => {
+        modal.remove();
+        onConfirm();
+      };
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+      });
+    }
+
+    function showToast(type, title, message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+      };
+
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type]}</span>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          ${message ? `<div class="toast-message">${message}</div>` : ''}
+        </div>
+      `;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function showTooltip(event, text) {
+      if (!text) return;
+
+      let tooltip = document.getElementById('tooltip');
+      if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'tooltip';
+        tooltip.className = 'tooltip';
+        document.body.appendChild(tooltip);
+      }
+
+      tooltip.textContent = text;
+      tooltip.style.left = event.clientX + 10 + 'px';
+      tooltip.style.top = event.clientY + 10 + 'px';
+      tooltip.classList.add('show');
+    }
+
+    function hideTooltip() {
+      const tooltip = document.getElementById('tooltip');
+      if (tooltip) {
+        tooltip.classList.remove('show');
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateStatusBar() {
+      document.getElementById('networkStatus').className = 'status-dot';
+
+      if (navigator.onLine) {
+        document.getElementById('networkText').textContent = '已连接';
+      } else {
+        document.getElementById('networkStatus').classList.add('error');
+        document.getElementById('networkText').textContent = '离线';
+      }
+    }
+
+    function setupEventListeners() {
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchMode(btn.dataset.mode));
+      });
+
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+        });
+      });
+
+      document.getElementById('expandAllBtn').addEventListener('click', expandAll);
+      document.getElementById('collapseAllBtn').addEventListener('click', collapseAll);
+
+      document.getElementById('globalSearch').addEventListener('input', () => {
+        renderProducts();
+      });
+
+      document.getElementById('favoritesBtn').addEventListener('click', toggleFavoritesPanel);
+      document.getElementById('updateBtn').addEventListener('click', checkForUpdates);
+      document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+
+      document.getElementById('themeSelect').addEventListener('change', async (e) => {
+        appData.settings.theme = e.target.value;
+        applyTheme();
+        await saveAppData();
+      });
+
+      document.getElementById('fontSizeSelect').addEventListener('change', async (e) => {
+        appData.settings.fontSize = e.target.value;
+        applyFontSize();
+        await saveAppData();
+      });
+
+      document.getElementById('cardCount').addEventListener('change', async (e) => {
+        appData.settings.cardDisplayCount = parseInt(e.target.value);
+        await saveAppData();
+      });
+
+      document.getElementById('defaultMode').addEventListener('change', async (e) => {
+        appData.settings.classificationMode = e.target.value;
+        await saveAppData();
+      });
+
+      document.getElementById('updateFrequency').addEventListener('change', async (e) => {
+        appData.settings.updateFrequency = e.target.value;
+        await saveAppData();
+      });
+
+      document.getElementById('downloadSpeedLimit').addEventListener('change', async (e) => {
+        appData.settings.downloadSpeedLimit = parseInt(e.target.value);
+        await saveAppData();
+      });
+
+      window.addEventListener('online', updateStatusBar);
+      window.addEventListener('offline', updateStatusBar);
+
+      window.electronAPI.onMenuImport(() => importData());
+      window.electronAPI.onMenuExport(() => exportData());
+      window.electronAPI.onMenuBackup(() => createBackup());
+      window.electronAPI.onMenuRestore(() => openSettingsModal());
+      window.electronAPI.onMenuCheckUpdate(() => checkForUpdates());
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeSettingsModal();
+          closeProductModal();
+          closeContentModal();
+          document.getElementById('favoritesPanel').classList.remove('show');
+          hideContextMenu();
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', initializeApp);
+  </script>
+</body>
+</html>

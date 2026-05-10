@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工控资料聚合管理器 - Web预览版</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-color: #1890ff;
+      --primary-hover: #40a9ff;
+      --bg-color: #f0f2f5;
+      --card-bg: #ffffff;
+      --text-primary: #262626;
+      --text-secondary: #8c8c8c;
+      --border-color: #d9d9d9;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+      --success-color: #52c41a;
+      --warning-color: #faad14;
+      --error-color: #ff4d4f;
+      --info-color: #1890ff;
+    }
+
+    body.dark-theme {
+      --bg-color: #1f1f1f;
+      --card-bg: #2d2d2d;
+      --text-primary: #e8e8e8;
+      --text-secondary: #a6a6a6;
+      --border-color: #404040;
+      --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .mode-switch {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 4px;
+    }
+
+    .mode-btn {
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s;
+      font-size: 13px;
+    }
+
+    .mode-btn.active {
+      background: white;
+      color: #1890ff;
+      font-weight: 500;
+    }
+
+    .mode-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .search-box {
+      position: relative;
+      width: 320px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 36px 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      background: white;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
+    }
+
+    .search-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8c8c8c;
+      pointer-events: none;
+    }
+
+    .header-btn {
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: white;
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--bg-color);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .icon-btn:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .tree-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .tree-node {
+      user-select: none;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      margin-bottom: 2px;
+    }
+
+    .tree-item:hover {
+      background: var(--bg-color);
+    }
+
+    .tree-item.active {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .tree-item-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tree-item-text {
+      flex: 1;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tree-item-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: 8px;
+    }
+
+    .tree-item.active .tree-item-count {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .tree-toggle {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s;
+      margin-right: 4px;
+    }
+
+    .tree-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .tree-children {
+      margin-left: 24px;
+    }
+
+    .tree-children.collapsed {
+      display: none;
+    }
+
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .breadcrumb-item {
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .breadcrumb-item:hover {
+      color: var(--primary-color);
+    }
+
+    .breadcrumb-item.current {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .breadcrumb-separator {
+      color: var(--text-secondary);
+    }
+
+    .products-grid {
+      flex: 1;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      padding: 8px;
+    }
+
+    .product-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+      position: relative;
+    }
+
+    .product-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .product-card.expanded {
+      border-color: var(--primary-color);
+    }
+
+    .product-card.favorite {
+      border-color: var(--warning-color);
+    }
+
+    .product-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .product-thumbnail {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .product-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-model {
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 2px 8px;
+      background: var(--bg-color);
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .favorite-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-color);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      color: var(--text-secondary);
+    }
+
+    .favorite-btn:hover {
+      background: var(--warning-color);
+      color: white;
+    }
+
+    .favorite-btn.active {
+      background: var(--warning-color);
+      color: white;
+    }
+
+    .product-dropdown {
+      margin-top: 16px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 16px;
+      display: none;
+    }
+
+    .product-dropdown.show {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .module-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .module-item {
+      background: var(--bg-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .module-header:hover {
+      background: var(--border-color);
+    }
+
+    .module-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary-color);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-right: 12px;
+    }
+
+    .module-info {
+      flex: 1;
+    }
+
+    .module-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .module-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .module-toggle {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s;
+    }
+
+    .module-toggle.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .module-content {
+      padding: 0 16px 12px;
+      display: block;
+    }
+
+    .module-content.collapsed {
+      display: none;
+    }
+
+    .content-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      background: var(--card-bg);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      transition: all 0.3s;
+    }
+
+    .content-item:hover {
+      box-shadow: var(--shadow);
+    }
+
+    .content-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 16px;
+    }
+
+    .content-icon.local {
+      background: #e6f7ff;
+      color: var(--primary-color);
+    }
+
+    .content-icon.network {
+      background: #fff7e6;
+      color: var(--warning-color);
+    }
+
+    .content-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .content-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .content-path {
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .content-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: var(--bg-color);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .action-btn.danger:hover {
+      background: var(--error-color);
+    }
+
+    .status-bar {
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      padding: 8px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success-color);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      transform: scale(0.9);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.show .modal {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--bg-color);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.3s;
+    }
+
+    .modal-close:hover {
+      background: var(--error-color);
+      color: white;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--card-bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-color);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toast {
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-hover);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .toast.success {
+      border-left: 4px solid var(--success-color);
+    }
+
+    .toast.error {
+      border-left: 4px solid var(--error-color);
+    }
+
+    .toast.warning {
+      border-left: 4px solid var(--warning-color);
+    }
+
+    .toast.info {
+      border-left: 4px solid var(--info-color);
+    }
+
+    .toast-icon {
+      font-size: 20px;
+    }
+
+    .toast-content {
+      flex: 1;
+    }
+
+    .toast-title {
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .toast-message {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--text-primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .setting-section {
+      margin-bottom: 24px;
+    }
+
+    .setting-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--bg-color);
+    }
+
+    .setting-info {
+      flex: 1;
+    }
+
+    .setting-label {
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .setting-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--border-color);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle-switch.active {
+      background: var(--primary-color);
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.3s;
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(20px);
+    }
+
+    .favorites-panel {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 400px;
+      height: 100vh;
+      background: var(--card-bg);
+      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+      z-index: 1001;
+      transition: right 0.3s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .favorites-panel.show {
+      right: 0;
+    }
+
+    .panel-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .favorite-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: var(--bg-color);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .favorite-item:hover {
+      box-shadow: var(--shadow);
+    }
+
+    .demo-banner {
+      background: linear-gradient(135deg, #fa8c16 0%, #faad14 100%);
+      color: white;
+      padding: 12px 24px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .demo-banner a {
+      color: white;
+      text-decoration: underline;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="demo-banner">
+      🎯 这是 Web 预览版本，部分功能（文件操作、系统集成）在浏览器环境中不可用。完整功能请运行 Electron 桌面版！
+    </div>
+    <header class="header">
+      <div class="header-left">
+        <h1 class="header-title">工控资料聚合管理器</h1>
+        <div class="mode-switch">
+          <button class="mode-btn active" data-mode="company-first" onclick="switchMode('company-first')">按公司分类</button>
+          <button class="mode-btn" data-mode="category-first" onclick="switchMode('category-first')">按类别分类</button>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="搜索产品、资料、公司..." id="globalSearch" oninput="renderProducts()">
+          <span class="search-icon">🔍</span>
+        </div>
+        <button class="header-btn" onclick="toggleFavoritesPanel()">⭐ 收藏</button>
+        <button class="header-btn" onclick="checkForUpdates()">🔄 检查更新</button>
+        <button class="header-btn" onclick="openSettingsModal()">⚙️ 设置</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">📂 分类目录</span>
+          <div class="sidebar-actions">
+            <button class="icon-btn" onclick="expandAll()" title="展开全部">⬇️</button>
+            <button class="icon-btn" onclick="collapseAll()" title="折叠全部">⬆️</button>
+          </div>
+        </div>
+        <div class="tree-container" id="categoryTree"></div>
+      </aside>
+
+      <section class="content-area">
+        <div class="breadcrumb" id="breadcrumb">
+          <span class="breadcrumb-item current">全部产品</span>
+        </div>
+        <div class="products-grid" id="productsGrid"></div>
+      </section>
+    </main>
+
+    <footer class="status-bar">
+      <div class="status-left">
+        <div class="status-item">
+          <span class="status-dot"></span>
+          <span>已连接</span>
+        </div>
+        <div class="status-item">
+          <span>📁 存储路径：</span>
+          <span>未设置</span>
+        </div>
+      </div>
+      <div class="status-right">
+        <span>最后更新：刚刚</span>
+        <span style="margin-left: 16px;">共 <span id="totalProducts">0</span> 个产品</span>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">⚙️ 设置</h2>
+        <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs">
+          <button class="tab active" data-tab="general" onclick="switchTab('general')">常规设置</button>
+          <button class="tab" data-tab="display" onclick="switchTab('display')">显示设置</button>
+          <button class="tab" data-tab="update" onclick="switchTab('update')">更新设置</button>
+        </div>
+
+        <div class="tab-content active" id="tab-general">
+          <div class="setting-section">
+            <h3 class="setting-title">默认分类模式</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">启动时默认显示</div>
+                <div class="setting-desc">选择软件启动时默认显示的分类模式</div>
+              </div>
+              <select class="form-input" style="width: 200px;">
+                <option value="company-first">按公司分类</option>
+                <option value="category-first">按类别分类</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-display">
+          <div class="setting-section">
+            <h3 class="setting-title">界面显示</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">主题模式</div>
+                <div class="setting-desc">切换界面颜色主题</div>
+              </div>
+              <select class="form-input" style="width: 200px;" id="themeSelect" onchange="toggleTheme()">
+                <option value="light">浅色模式</option>
+                <option value="dark">深色模式</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">字体大小</div>
+                <div class="setting-desc">调整界面字体大小</div>
+              </div>
+              <select class="form-input" style="width: 200px;">
+                <option value="small">小</option>
+                <option value="medium" selected>中</option>
+                <option value="large">大</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-section">
+            <h3 class="setting-title">默认模块设置</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">产品介绍</div>
+                <div class="setting-desc">默认显示产品介绍模块</div>
+              </div>
+              <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">驱动软件</div>
+                <div class="setting-desc">默认显示驱动软件模块</div>
+              </div>
+              <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">编程示例</div>
+                <div class="setting-desc">默认显示编程示例模块</div>
+              </div>
+              <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-update">
+          <div class="setting-section">
+            <h3 class="setting-title">自动更新</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">启用自动更新检测</div>
+                <div class="setting-desc">开启后将在后台自动检测资料更新</div>
+              </div>
+              <div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-label">更新检测频率</div>
+                <div class="setting-desc">设置自动检测更新的时间间隔</div>
+              </div>
+              <select class="form-input" style="width: 200px;">
+                <option value="daily">每天一次</option>
+                <option value="weekly" selected>每周一次</option>
+                <option value="monthly">每月一次</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="favorites-panel" id="favoritesPanel">
+    <div class="panel-header">
+      <h2 class="panel-title">⭐ 我的收藏</h2>
+      <button class="modal-close" onclick="toggleFavoritesPanel()">✕</button>
+    </div>
+    <div class="panel-body" id="favoritesList"></div>
+  </div>
+
+  <script>
+    const sampleProducts = [
+      {
+        id: '1',
+        model: 'S7-1200',
+        name: '西门子 S7-1200 PLC',
+        company: '西门子',
+        category: 'PLC',
+        description: 'SIMATIC S7-1200 小型可编程控制器',
+        notes: '支持PROFINET通信',
+        favorite: false,
+        contents: {
+          productIntro: [
+            { id: 'p1-1', name: 'S7-1200 系统手册', type: 'local', path: 'C:\\Docs\\S7-1200\\SystemManual.pdf' },
+            { id: 'p1-2', name: '技术规格', type: 'network', url: 'https://example.com/s7-1200-specs.pdf' }
+          ],
+          driverSoftware: [
+            { id: 'd1-1', name: 'TIA Portal V17', type: 'local', path: 'C:\\Software\\TIAPortal\\v17.exe' }
+          ],
+          programmingExamples: [
+            { id: 'e1-1', name: '基础编程示例', type: 'local', path: 'C:\\Examples\\S7-1200\\Basic.zip' }
+          ],
+          custom: []
+        }
+      },
+      {
+        id: '2',
+        model: 'GOT2000',
+        name: '三菱 GOT2000 触摸屏',
+        company: '三菱电机',
+        category: '触摸屏',
+        description: 'GOT2000 系列图形操作终端',
+        notes: '支持多语言界面',
+        favorite: false,
+        contents: {
+          productIntro: [
+            { id: 'p2-1', name: '产品介绍', type: 'local', path: 'C:\\Docs\\GOT2000\\Intro.pdf' }
+          ],
+          driverSoftware: [
+            { id: 'd2-1', name: 'GT Works3', type: 'network', url: 'https://example.com/gtworks3.zip' }
+          ],
+          programmingExamples: [
+            { id: 'e2-1', name: '画面设计示例', type: 'local', path: 'C:\\Examples\\GOT2000\\HMI.zip' }
+          ],
+          custom: []
+        }
+      },
+      {
+        id: '3',
+        model: 'MR-J5',
+        name: '三菱 MR-J5 伺服系统',
+        company: '三菱电机',
+        category: '伺服系统',
+        description: 'MR-J5 系列通用交流伺服系统',
+        notes: '高响应、高精度',
+        favorite: false,
+        contents: {
+          productIntro: [
+            { id: 'p3-1', name: '产品手册', type: 'local', path: 'C:\\Docs\\MR-J5\\Manual.pdf' }
+          ],
+          driverSoftware: [
+            { id: 'd3-1', name: 'MR Configurator2', type: 'local', path: 'C:\\Software\\MRConfig2\\setup.exe' }
+          ],
+          programmingExamples: [
+            { id: 'e3-1', name: '参数设置示例', type: 'local', path: 'C:\\Examples\\MR-J5\\Params.zip' }
+          ],
+          custom: []
+        }
+      },
+      {
+        id: '4',
+        model: 'FR-A800',
+        name: '三菱 FR-A800 变频器',
+        company: '三菱电机',
+        category: '变频器',
+        description: 'FR-A800 系列高性能变频器',
+        notes: '支持矢量控制',
+        favorite: false,
+        contents: {
+          productIntro: [
+            { id: 'p4-1', name: '技术手册', type: 'local', path: 'C:\\Docs\\FR-A800\\Tech.pdf' }
+          ],
+          driverSoftware: [
+            { id: 'd4-1', name: 'FR Configurator2', type: 'network', url: 'https://example.com/fr-config.zip' }
+          ],
+          programmingExamples: [
+            { id: 'e4-1', name: '参数调试示例', type: 'local', path: 'C:\\Examples\\FR-A800\\Debug.zip' }
+          ],
+          custom: []
+        }
+      },
+      {
+        id: '5',
+        model: 'FX5U',
+        name: '三菱 FX5U PLC',
+        company: '三菱电机',
+        category: 'PLC',
+        description: 'MELSEC iQ-F 系列 FX5U CPU模块',
+        notes: '内置高速计数器和模拟量',
+        favorite: false,
+        contents: {
+          productIntro: [
+            { id: 'p5-1', name: '产品手册', type: 'local', path: 'C:\\Docs\\FX5U\\Manual.pdf' }
+          ],
+          driverSoftware: [
+            { id: 'd5-1', name: 'GX Works3', type: 'local', path: 'C:\\Software\\GXWorks3\\setup.exe' }
+          ],
+          programmingExamples: [
+            { id: 'e5-1', name: '编程示例集', type: 'local', path: 'C:\\Examples\\FX5U\\Samples.zip' }
+          ],
+          custom: []
+        }
+      },
+      {
+        id: '6',
+        model: 'SIMATIC HMI',
+        name: '西门子 SIMATIC HMI',
+        company: '西门子',
+        category: '触摸屏',
+        description: 'SIMATIC HMI 精简面板',
+        notes: '支持PROFINET',
+        favorite: false,
+        contents: {
+          productIntro: [
+            { id: 'p6-1', name: '产品介绍', type: 'local', path: 'C:\\Docs\\HMI\\Intro.pdf' }
+          ],
+          driverSoftware: [
+            { id: 'd6-1', name: 'WinCC Flexible', type: 'network', url: 'https://example.com/wincc-flex.zip' }
+          ],
+          programmingExamples: [
+            { id: 'e6-1', name: '项目模板', type: 'local', path: 'C:\\Examples\\HMI\\Templates.zip' }
+          ],
+          custom: []
+        }
+      }
+    ];
+
+    let appData = {
+      settings: { theme: 'light' },
+      products: sampleProducts,
+      favorites: []
+    };
+
+    let currentMode = 'company-first';
+    let expandedNodes = new Set();
+    let expandedModules = new Set();
+    let expandedProducts = new Set();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCategoryTree();
+      renderProducts();
+      updateTotalProducts();
+      showToast('info', 'Web预览版已启动', '欢迎使用工控资料聚合管理器！');
+    });
+
+    function renderCategoryTree() {
+      const treeContainer = document.getElementById('categoryTree');
+      const data = getGroupedData();
+
+      let html = '';
+
+      if (currentMode === 'company-first') {
+        Object.keys(data).sort().forEach(company => {
+          const categories = data[company];
+          const isExpanded = expandedNodes.has(company);
+          html += `
+            <div class="tree-node">
+              <div class="tree-item" onclick="toggleNode('${escapeHtml(company)}')">
+                <span class="tree-toggle ${isExpanded ? '' : 'collapsed'}">▼</span>
+                <span class="tree-item-icon">🏢</span>
+                <span class="tree-item-text">${escapeHtml(company)}</span>
+                <span class="tree-item-count">${Object.keys(categories).length}</span>
+              </div>
+              <div class="tree-children ${isExpanded ? '' : 'collapsed'}">`;
+
+          Object.keys(categories).sort().forEach(category => {
+            const products = categories[category];
+            const nodeKey = `${company}|${category}`;
+            const isCatExpanded = expandedNodes.has(nodeKey);
+            html += `
+              <div class="tree-node">
+                <div class="tree-item" onclick="toggleNode('${escapeHtml(nodeKey)}')">
+                  <span class="tree-toggle ${isCatExpanded ? '' : 'collapsed'}">▼</span>
+                  <span class="tree-item-icon">📦</span>
+                  <span class="tree-item-text">${escapeHtml(category)}</span>
+                  <span class="tree-item-count">${products.length}</span>
+                </div>
+                <div class="tree-children ${isCatExpanded ? '' : 'collapsed'}">`;
+
+            products.forEach(product => {
+              html += `
+                <div class="tree-node">
+                  <div class="tree-item" onclick="selectProduct('${product.id}')">
+                    <span class="tree-item-icon">📄</span>
+                    <span class="tree-item-text">${escapeHtml(product.model)} - ${escapeHtml(product.name)}</span>
+                  </div>
+                </div>`;
+            });
+
+            html += '</div></div>';
+          });
+
+          html += '</div></div>';
+        });
+      } else {
+        Object.keys(data).sort().forEach(category => {
+          const companies = data[category];
+          const isExpanded = expandedNodes.has(category);
+          html += `
+            <div class="tree-node">
+              <div class="tree-item" onclick="toggleNode('${escapeHtml(category)}')">
+                <span class="tree-toggle ${isExpanded ? '' : 'collapsed'}">▼</span>
+                <span class="tree-item-icon">📦</span>
+                <span class="tree-item-text">${escapeHtml(category)}</span>
+                <span class="tree-item-count">${Object.keys(companies).length}</span>
+              </div>
+              <div class="tree-children ${isExpanded ? '' : 'collapsed'}">`;
+
+          Object.keys(companies).sort().forEach(company => {
+            const products = companies[company];
+            const nodeKey = `${category}|${company}`;
+            const isCompExpanded = expandedNodes.has(nodeKey);
+            html += `
+              <div class="tree-node">
+                <div class="tree-item" onclick="toggleNode('${escapeHtml(nodeKey)}')">
+                  <span class="tree-toggle ${isCompExpanded ? '' : 'collapsed'}">▼</span>
+                  <span class="tree-item-icon">🏢</span>
+                  <span class="tree-item-text">${escapeHtml(company)}</span>
+                  <span class="tree-item-count">${products.length}</span>
+                </div>
+                <div class="tree-children ${isCompExpanded ? '' : 'collapsed'}">`;
+
+            products.forEach(product => {
+              html += `
+                <div class="tree-node">
+                  <div class="tree-item" onclick="selectProduct('${product.id}')">
+                    <span class="tree-item-icon">📄</span>
+                    <span class="tree-item-text">${escapeHtml(product.model)} - ${escapeHtml(product.name)}</span>
+                  </div>
+                </div>`;
+            });
+
+            html += '</div></div>';
+          });
+
+          html += '</div></div>';
+        });
+      }
+
+      treeContainer.innerHTML = html;
+    }
+
+    function getGroupedData() {
+      const grouped = {};
+      appData.products.forEach(product => {
+        if (currentMode === 'company-first') {
+          if (!grouped[product.company]) grouped[product.company] = {};
+          if (!grouped[product.company][product.category]) grouped[product.company][product.category] = [];
+          grouped[product.company][product.category].push(product);
+        } else {
+          if (!grouped[product.category]) grouped[product.category] = {};
+          if (!grouped[product.category][product.company]) grouped[product.category][product.company] = [];
+          grouped[product.category][product.company].push(product);
+        }
+      });
+      return grouped;
+    }
+
+    function toggleNode(nodeKey) {
+      if (expandedNodes.has(nodeKey)) {
+        expandedNodes.delete(nodeKey);
+      } else {
+        expandedNodes.add(nodeKey);
+      }
+      renderCategoryTree();
+    }
+
+    function expandAll() {
+      const data = getGroupedData();
+      if (currentMode === 'company-first') {
+        Object.keys(data).forEach(company => {
+          expandedNodes.add(company);
+          Object.keys(data[company]).forEach(category => {
+            expandedNodes.add(`${company}|${category}`);
+          });
+        });
+      } else {
+        Object.keys(data).forEach(category => {
+          expandedNodes.add(category);
+          Object.keys(data[category]).forEach(company => {
+            expandedNodes.add(`${category}|${company}`);
+          });
+        });
+      }
+      renderCategoryTree();
+    }
+
+    function collapseAll() {
+      expandedNodes.clear();
+      renderCategoryTree();
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('productsGrid');
+      const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
+
+      let filteredProducts = appData.products;
+      if (searchTerm) {
+        filteredProducts = filteredProducts.filter(p =>
+          p.model.toLowerCase().includes(searchTerm) ||
+          p.name.toLowerCase().includes(searchTerm) ||
+          p.company.toLowerCase().includes(searchTerm) ||
+          p.category.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      if (filteredProducts.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-icon">📦</div>
+            <div class="empty-text">暂无产品</div>
+            <div class="empty-hint">请尝试其他搜索词</div>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = filteredProducts.map(product => {
+        const isFavorite = appData.favorites.includes(product.id);
+        const isExpanded = expandedProducts.has(product.id);
+
+        return `
+          <div class="product-card ${isExpanded ? 'expanded' : ''} ${isFavorite ? 'favorite' : ''}" id="product-${product.id}">
+            <button class="favorite-btn ${isFavorite ? 'active' : ''}" onclick="toggleFavorite('${product.id}', event)">
+              ${isFavorite ? '⭐' : '☆'}
+            </button>
+            <div class="product-header" onclick="toggleProductExpand('${product.id}')">
+              <div class="product-thumbnail">${product.model.charAt(0)}</div>
+              <div class="product-info">
+                <div class="product-name">${escapeHtml(product.name)}</div>
+                <div class="product-model">${escapeHtml(product.model)}</div>
+                <div class="product-tags">
+                  <span class="tag">${escapeHtml(product.company)}</span>
+                  <span class="tag">${escapeHtml(product.category)}</span>
+                </div>
+              </div>
+            </div>
+            <div class="product-dropdown ${isExpanded ? 'show' : ''}">
+              <div class="module-list">
+                ${renderModule(product, 'productIntro', '产品介绍', '📖')}
+                ${renderModule(product, 'driverSoftware', '驱动软件', '💾')}
+                ${renderModule(product, 'programmingExamples', '编程示例', '💻')}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderModule(product, moduleType, moduleName, icon) {
+      const contents = product.contents[moduleType] || [];
+      const isModuleExpanded = expandedModules.has(`${product.id}|${moduleType}`);
+
+      return `
+        <div class="module-item">
+          <div class="module-header" onclick="toggleModuleExpand('${product.id}', '${moduleType}')">
+            <div class="module-icon">${icon}</div>
+            <div class="module-info">
+              <div class="module-name">${moduleName}</div>
+              <div class="module-count">${contents.length} 个项目</div>
+            </div>
+            <div class="module-toggle ${isModuleExpanded ? '' : 'collapsed'}">▼</div>
+          </div>
+          <div class="module-content ${isModuleExpanded ? '' : 'collapsed'}">
+            ${contents.length === 0 ?
+              '<div style="padding: 12px; text-align: center; color: var(--text-secondary); font-size: 13px;">暂无资料</div>' :
+              contents.map(content => renderContentItem(product.id, moduleType, content)).join('')
+            }
+          </div>
+        </div>`;
+    }
+
+    function renderContentItem(productId, moduleType, content) {
+      const isLocal = content.type === 'local';
+      const iconClass = isLocal ? 'local' : 'network';
+      const icon = isLocal ? '📁' : '🔗';
+      const path = isLocal ? content.path : content.url;
+
+      return `
+        <div class="content-item">
+          <div class="content-icon ${iconClass}">${icon}</div>
+          <div class="content-info">
+            <div class="content-name">${escapeHtml(content.name)}</div>
+            <div class="content-path">${escapeHtml(path || '')}</div>
+          </div>
+          <div class="content-actions">
+            <button class="action-btn" onclick="showDemoToast()">▶️</button>
+            <button class="action-btn danger" onclick="showDemoToast()">🗑️</button>
+          </div>
+        </div>`;
+    }
+
+    function toggleProductExpand(productId) {
+      if (expandedProducts.has(productId)) {
+        expandedProducts.delete(productId);
+      } else {
+        expandedProducts.add(productId);
+      }
+      renderProducts();
+    }
+
+    function toggleModuleExpand(productId, moduleType) {
+      const key = `${productId}|${moduleType}`;
+      if (expandedModules.has(key)) {
+        expandedModules.delete(key);
+      } else {
+        expandedModules.add(key);
+      }
+      renderProducts();
+    }
+
+    function selectProduct(productId) {
+      expandedProducts.clear();
+      expandedProducts.add(productId);
+      renderProducts();
+      setTimeout(() => {
+        const element = document.getElementById(`product-${productId}`);
+        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+
+    function toggleFavorite(productId, event) {
+      event.stopPropagation();
+      const index = appData.favorites.indexOf(productId);
+      if (index > -1) {
+        appData.favorites.splice(index, 1);
+        showToast('info', '已取消收藏', '');
+      } else {
+        appData.favorites.push(productId);
+        showToast('success', '已添加收藏', '');
+      }
+      renderProducts();
+      renderFavoritesList();
+    }
+
+    function showDemoToast() {
+      showToast('warning', '预览版本', '此功能在Web预览版中不可用，请运行Electron桌面版！');
+    }
+
+    function updateTotalProducts() {
+      document.getElementById('totalProducts').textContent = appData.products.length;
+    }
+
+    function switchMode(mode) {
+      if (currentMode === mode) return;
+      currentMode = mode;
+      expandedNodes.clear();
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      renderCategoryTree();
+      showToast('success', '已切换分类模式', mode === 'company-first' ? '按公司分类' : '按类别分类');
+    }
+
+    function toggleTheme() {
+      const theme = document.getElementById('themeSelect').value;
+      if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+      } else {
+        document.body.classList.remove('dark-theme');
+      }
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settingsModal').classList.add('show');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('show');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+      });
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `tab-${tabName}`);
+      });
+    }
+
+    function toggleFavoritesPanel() {
+      const panel = document.getElementById('favoritesPanel');
+      panel.classList.toggle('show');
+      if (panel.classList.contains('show')) {
+        renderFavoritesList();
+      }
+    }
+
+    function renderFavoritesList() {
+      const list = document.getElementById('favoritesList');
+      if (appData.favorites.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⭐</div>
+            <div class="empty-text">暂无收藏</div>
+            <div class="empty-hint">点击产品卡片上的星标添加收藏</div>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = appData.favorites.map(productId => {
+        const product = appData.products.find(p => p.id === productId);
+        if (!product) return '';
+        return `
+          <div class="favorite-item" onclick="goToProduct('${productId}')">
+            <div class="product-thumbnail" style="width: 48px; height: 48px; font-size: 18px; margin-right: 12px;">
+              ${product.model.charAt(0)}
+            </div>
+            <div style="flex: 1;">
+              <div class="product-name">${escapeHtml(product.name)}</div>
+              <div class="product-model">${escapeHtml(product.model)}</div>
+            </div>
+            <button class="icon-btn" onclick="toggleFavorite('${productId}', event)" title="取消收藏">⭐</button>
+          </div>`;
+      }).join('');
+    }
+
+    function goToProduct(productId) {
+      toggleFavoritesPanel();
+      selectProduct(productId);
+    }
+
+    function checkForUpdates() {
+      showToast('info', '正在检查更新...', '请稍候');
+      setTimeout(() => {
+        showToast('success', '检查完成', '已是最新版本');
+      }, 2000);
+    }
+
+    function showToast(type, title, message) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type]}</span>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          ${message ? `<div class="toast-message">${message}</div>` : ''}
+        </div>`;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

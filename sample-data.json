@@ -1,0 +1,378 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "model": "S7-1200",
+      "name": "西门子 S7-1200 PLC",
+      "company": "西门子",
+      "category": "PLC",
+      "description": "SIMATIC S7-1200 小型可编程控制器，适用于小型自动化项目",
+      "notes": "支持PROFINET通信，内置PTO/PWM输出",
+      "favorite": false,
+      "contents": {
+        "productIntro": [
+          {
+            "id": "p1-1",
+            "name": "S7-1200 系统手册",
+            "type": "local",
+            "path": "C:\\Docs\\S7-1200\\SystemManual.pdf",
+            "notes": "完整系统手册，包含硬件配置和基本指令"
+          },
+          {
+            "id": "p1-2",
+            "name": "技术规格表",
+            "type": "network",
+            "url": "https://example.com/s7-1200-specs.pdf",
+            "notes": "产品技术参数汇总"
+          }
+        ],
+        "driverSoftware": [
+          {
+            "id": "d1-1",
+            "name": "TIA Portal V17",
+            "type": "local",
+            "path": "C:\\Software\\TIAPortal\\V17\\Setup.exe",
+            "notes": "最新版本编程软件"
+          },
+          {
+            "id": "d1-2",
+            "name": "S7-1200 固件更新包",
+            "type": "network",
+            "url": "https://example.com/s7-1200-firmware-v4.4.zip",
+            "notes": "最新固件版本"
+          }
+        ],
+        "programmingExamples": [
+          {
+            "id": "e1-1",
+            "name": "基础编程示例",
+            "type": "local",
+            "path": "C:\\Examples\\S7-1200\\BasicExamples.zip",
+            "notes": "包含逻辑控制、计时器、计数器等基础示例"
+          },
+          {
+            "id": "e1-2",
+            "name": "通信配置示例",
+            "type": "local",
+            "path": "C:\\Examples\\S7-1200\\CommunicationExamples.zip",
+            "notes": "PROFINET、Modbus TCP通信示例"
+          }
+        ],
+        "custom": []
+      }
+    },
+    {
+      "id": "2",
+      "model": "GT2310",
+      "name": "三菱 GOT2000 触摸屏",
+      "company": "三菱电机",
+      "category": "触摸屏",
+      "description": "GOT2000 系列图形操作终端，10.1寸宽屏",
+      "notes": "支持多语言界面，内置多种驱动",
+      "favorite": false,
+      "contents": {
+        "productIntro": [
+          {
+            "id": "p2-1",
+            "name": "GOT2000 产品介绍",
+            "type": "local",
+            "path": "C:\\Docs\\GOT2000\\Intro.pdf",
+            "notes": "产品宣传册"
+          }
+        ],
+        "driverSoftware": [
+          {
+            "id": "d2-1",
+            "name": "GT Works3",
+            "type": "network",
+            "url": "https://example.com/gtworks3.zip",
+            "notes": "画面设计软件"
+          },
+          {
+            "id": "d2-2",
+            "name": "GOT2000 驱动包",
+            "type": "local",
+            "path": "C:\\Software\\GOT2000\\DriverPack.zip",
+            "notes": "包含三菱全系列驱动"
+          }
+        ],
+        "programmingExamples": [
+          {
+            "id": "e2-1",
+            "name": "画面设计示例工程",
+            "type": "local",
+            "path": "C:\\Examples\\GOT2000\\HMI_Projects.zip",
+            "notes": "包含多种行业应用画面模板"
+          }
+        ],
+        "custom": []
+      }
+    },
+    {
+      "id": "3",
+      "model": "MR-J5",
+      "name": "三菱 MR-J5 伺服系统",
+      "company": "三菱电机",
+      "category": "伺服系统",
+      "description": "MR-J5 系列通用交流伺服系统，高响应高精度",
+      "notes": "支持SSCNET III/H 通信，1ms 以内响应",
+      "favorite": false,
+      "contents": {
+        "productIntro": [
+          {
+            "id": "p3-1",
+            "name": "MR-J5 产品手册",
+            "type": "local",
+            "path": "C:\\Docs\\MR-J5\\Manual.pdf",
+            "notes": "完整技术手册"
+          }
+        ],
+        "driverSoftware": [
+          {
+            "id": "d3-1",
+            "name": "MR Configurator2",
+            "type": "local",
+            "path": "C:\\Software\\MRConfig2\\Setup.exe",
+            "notes": "伺服调试软件"
+          }
+        ],
+        "programmingExamples": [
+          {
+            "id": "e3-1",
+            "name": "参数设置指南",
+            "type": "local",
+            "path": "C:\\Examples\\MR-J5\\ParameterGuide.pdf",
+            "notes": "常用参数配置说明"
+          },
+          {
+            "id": "e3-2",
+            "name": "调试示例程序",
+            "type": "local",
+            "path": "C:\\Examples\\MR-J5\\DebugExamples.zip",
+            "notes": "包含多种应用场景调试代码"
+          }
+        ],
+        "custom": []
+      }
+    },
+    {
+      "id": "4",
+      "model": "FR-A800",
+      "name": "三菱 FR-A800 变频器",
+      "company": "三菱电机",
+      "category": "变频器",
+      "description": "FR-A800 系列高性能变频器，支持矢量控制",
+      "notes": "0.5Hz 可输出150%转矩，支持各种电机",
+      "favorite": false,
+      "contents": {
+        "productIntro": [
+          {
+            "id": "p4-1",
+            "name": "FR-A800 技术手册",
+            "type": "local",
+            "path": "C:\\Docs\\FR-A800\\TechManual.pdf",
+            "notes": "完整技术文档"
+          }
+        ],
+        "driverSoftware": [
+          {
+            "id": "d4-1",
+            "name": "FR Configurator2",
+            "type": "network",
+            "url": "https://example.com/fr-config.zip",
+            "notes": "变频器调试软件"
+          }
+        ],
+        "programmingExamples": [
+          {
+            "id": "e4-1",
+            "name": "参数调试示例",
+            "type": "local",
+            "path": "C:\\Examples\\FR-A800\\ParamExamples.pdf",
+            "notes": "常用参数设置示例"
+          }
+        ],
+        "custom": []
+      }
+    },
+    {
+      "id": "5",
+      "model": "FX5U",
+      "name": "三菱 FX5U PLC",
+      "company": "三菱电机",
+      "category": "PLC",
+      "description": "MELSEC iQ-F 系列 FX5U CPU模块，小型高性能",
+      "notes": "内置高速计数器和模拟量，支持CC-Link IE",
+      "favorite": false,
+      "contents": {
+        "productIntro": [
+          {
+            "id": "p5-1",
+            "name": "FX5U 产品手册",
+            "type": "local",
+            "path": "C:\\Docs\\FX5U\\Manual.pdf",
+            "notes": "完整产品手册"
+          }
+        ],
+        "driverSoftware": [
+          {
+            "id": "d5-1",
+            "name": "GX Works3",
+            "type": "local",
+            "path": "C:\\Software\\GXWorks3\\Setup.exe",
+            "notes": "编程软件，支持结构化编程"
+          }
+        ],
+        "programmingExamples": [
+          {
+            "id": "e5-1",
+            "name": "FX5U 编程示例集",
+            "type": "local",
+            "path": "C:\\Examples\\FX5U\\Samples.zip",
+            "notes": "包含ST、FBD、LD等多种语言示例"
+          }
+        ],
+        "custom": []
+      }
+    },
+    {
+      "id": "6",
+      "model": "SIMATIC HMI",
+      "name": "西门子 SIMATIC HMI 精简面板",
+      "company": "西门子",
+      "category": "触摸屏",
+      "description": "SIMATIC HMI 精简面板，经济型人机界面",
+      "notes": "支持PROFINET连接，分辨率800x480",
+      "favorite": false,
+      "contents": {
+        "productIntro": [
+          {
+            "id": "p6-1",
+            "name": "SIMATIC HMI 产品介绍",
+            "type": "local",
+            "path": "C:\\Docs\\HMI\\Intro.pdf",
+            "notes": "产品宣传资料"
+          }
+        ],
+        "driverSoftware": [
+          {
+            "id": "d6-1",
+            "name": "WinCC Flexible",
+            "type": "network",
+            "url": "https://example.com/wincc-flex.zip",
+            "notes": "组态软件"
+          }
+        ],
+        "programmingExamples": [
+          {
+            "id": "e6-1",
+            "name": "HMI 项目模板",
+            "type": "local",
+            "path": "C:\\Examples\\HMI\\Templates.zip",
+            "notes": "多种行业应用模板"
+          }
+        ],
+        "custom": []
+      }
+    },
+    {
+      "id": "7",
+      "model": "RV-8F",
+      "name": "三菱 RV-8F 工业机器人",
+      "company": "三菱电机",
+      "category": "工业机器人",
+      "description": "6轴垂直多关节机器人，负载8kg",
+      "notes": "重复定位精度±0.02mm，适合装配和搬运",
+      "favorite": false,
+      "contents": {
+        "productIntro": [
+          {
+            "id": "p7-1",
+            "name": "RV-8F 机器人手册",
+            "type": "local",
+            "path": "C:\\Docs\\RV-8F\\Manual.pdf",
+            "notes": "完整操作手册"
+          }
+        ],
+        "driverSoftware": [
+          {
+            "id": "d7-1",
+            "name": "RT ToolBox3",
+            "type": "local",
+            "path": "C:\\Software\\RTToolBox3\\Setup.exe",
+            "notes": "机器人编程调试软件"
+          }
+        ],
+        "programmingExamples": [
+          {
+            "id": "e7-1",
+            "name": "机器人应用示例",
+            "type": "local",
+            "path": "C:\\Examples\\RV-8F\\Applications.zip",
+            "notes": "包含码垛、焊接、装配等示例"
+          }
+        ],
+        "custom": []
+      }
+    },
+    {
+      "id": "8",
+      "model": "CR750-D",
+      "name": "三菱 QD77MS 运动控制器",
+      "company": "三菱电机",
+      "category": "PLC",
+      "description": "Motion CPU 模块，用于多轴控制",
+      "notes": "支持SSCNET III/H，最多控制64轴",
+      "favorite": false,
+      "contents": {
+        "productIntro": [
+          {
+            "id": "p8-1",
+            "name": "QD77MS 产品手册",
+            "type": "local",
+            "path": "C:\\Docs\\QD77MS\\Manual.pdf",
+            "notes": "运动控制模块手册"
+          }
+        ],
+        "driverSoftware": [
+          {
+            "id": "d8-1",
+            "name": "MT Works2",
+            "type": "local",
+            "path": "C:\\Software\\MTWorks2\\Setup.exe",
+            "notes": "运动控制器调试软件"
+          }
+        ],
+        "programmingExamples": [
+          {
+            "id": "e8-1",
+            "name": "多轴控制示例",
+            "type": "local",
+            "path": "C:\\Examples\\QD77MS\\MultiAxis.zip",
+            "notes": "同步控制、插补运动示例"
+          }
+        ],
+        "custom": []
+      }
+    }
+  ],
+  "companies": [
+    "西门子",
+    "三菱电机",
+    "施耐德电气",
+    "ABB",
+    "欧姆龙",
+    " Rockwell Automation"
+  ],
+  "categories": [
+    "PLC",
+    "触摸屏",
+    "伺服系统",
+    "变频器",
+    "传感器",
+    "工业机器人",
+    "运动控制器",
+    "其他"
+  ],
+  "exportTime": "2024-01-15T10:30:00.000Z"
+}

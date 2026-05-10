@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工控资料管理器 - 简单预览</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1890ff;
+            margin-bottom: 20px;
+        }
+        .product-list {
+            list-style: none;
+            padding: 0;
+        }
+        .product-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        .badge {
+            background: #1890ff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .success {
+            color: #52c41a;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🏭 工控资料聚合管理器</h1>
+        <p>Web预览版 - 简单测试页面</p>
+        
+        <div class="success">
+            ✅ 服务器运行正常！<br>
+            您已成功访问工控资料管理器的Web预览版本。
+        </div>
+        
+        <h2 style="margin-top: 30px;">📦 示例产品列表</h2>
+        <ul class="product-list">
+            <li class="product-item">
+                <span>西门子 S7-1200 PLC</span>
+                <span class="badge">PLC</span>
+            </li>
+            <li class="product-item">
+                <span>三菱 GOT2000 触摸屏</span>
+                <span class="badge">触摸屏</span>
+            </li>
+            <li class="product-item">
+                <span>三菱 MR-J5 伺服系统</span>
+                <span class="badge">伺服系统</span>
+            </li>
+            <li class="product-item">
+                <span>三菱 FR-A800 变频器</span>
+                <span class="badge">变频器</span>
+            </li>
+            <li class="product-item">
+                <span>三菱 FX5U PLC</span>
+                <span class="badge">PLC</span>
+            </li>
+        </ul>
+        
+        <p style="margin-top: 30px; color: #666;">
+            这个页面只是简单的测试页面。<br>
+            完整功能请查看 <strong>web-preview.html</strong> 文件。
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工控资料聚合管理器 - 简单预览版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #1890ff;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .feature-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .feature-item::before {
+            content: '✅';
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 8px;
+        }
+        .status h3 {
+            color: #1890ff;
+            margin-bottom: 10px;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff7e6;
+            border: 1px solid #ffd591;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #d46b08;
+        }
+        .info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏭 工控资料聚合管理器</h1>
+        <p class="subtitle">Windows桌面端工控资料聚合管理工具</p>
+        
+        <h2 style="color: #333; margin: 20px 0;">主要功能</h2>
+        <ul class="feature-list">
+            <li class="feature-item">三级目录分类（公司/类别/产品）</li>
+            <li class="feature-item">双模式分类切换</li>
+            <li class="feature-item">产品卡片展示</li>
+            <li class="feature-item">资料详情管理</li>
+            <li class="feature-item">本地文件关联</li>
+            <li class="feature-item">网络下载功能</li>
+            <li class="feature-item">收藏夹管理</li>
+            <li class="feature-item">数据导入导出</li>
+            <li class="feature-item">主题切换</li>
+            <li class="feature-item">自动更新检测</li>
+        </ul>
+        
+        <div class="status">
+            <h3>✅ 服务器状态正常</h3>
+            <p>您已成功访问Web预览版本！</p>
+        </div>
+        
+        <div class="info">
+            <strong>⚠️ 注意：</strong>
+            这是简化预览版本。完整功能请查看：
+            <br>- web-preview.html - 完整UI预览
+            <br>- index.html - Electron桌面版界面
+        </div>
+    </div>
+</body>
+</html>
